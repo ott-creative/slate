@@ -40,6 +40,9 @@ UML时序图
 
 
 ## 1.4 更新日志
+**1.0.35  【待补充】  2022-04-27**  
+1. 【待补充】
+
 **1.0.34  新增一级商户入网接口  2022-03-04**  
 1. 新增商户入网接口
 
@@ -159,7 +162,6 @@ UML时序图
 
 # 3 交易接口规范
 ## 3.1 请求报文
-### 3.1.1
 
 > 交易报文遵循JSON规范。示例:
 
@@ -228,9 +230,9 @@ UML时序图
 1. 服务器端响应报文返回时，将商户号、报文密文、会话密钥和签名以标准json字符串返回 **{"merchantNo”:"",jsonEnc":"","keyEnc":"","sign":""}**，然后将字符串的字节流写入http的返回对象。客户端收到服务器端的响应时将HTTP服务方返回的字节流按照相应格式的字符串进行报文和摘要参数的获取，参数获
 取后，先要进行摘要校验，校验通过后在解析报文内容。
 
-报文摘要生成和校验方式请参看"[加密及签名规范](#_4-加密及签名规范)”章节。 
+报文摘要生成和校验方式请参看"[加密及签名规范](#4)”章节。 
 
-#  4 加密及签名规范
+# 4 加密及签名规范
 
 ## 4.1 原则
  
@@ -290,676 +292,8 @@ openssl rsa –in rsa_private_key_2048.pem –out rsa_public_key_2048.pem –pub
 本章节描述商户接入Ottpayhk相关业务接口。<br>
 M表示必输字段，O表示可选字段
 
-## 5.1 交易接口
-### 5.1.1 人民币付款
-
-**1 功能描述**
-
-|          |                                                              |
-| -------- | ------------------------------------------------------------ |
-| 交易代码 | TP1001                                                       |
-| 功能名称 | 人民币付款                                                   |
-| 功能描述 | 发起人民币付款请求，将收款人信息发送至Ottpayhk               |
-| 调用方式 | 实时接口                                                     |
-| 调用流程 | 先通过sftp将还原材料提交至Ottpayhk，再调用此接口发送付款信息 |
-| 应用场景 | 需要将人民币付给国内持卡人                                   |
-
- **2 请求地址**
-
- **Url：** `https://{baseUrl}/api/tp1001`
-  
- **Method：** `POST`
-
-> 请求示例:
-
-```json
-{
-    "merOrderNo":"KL123124124124124124124124",
-    "fileUrlPath":"ftp://shahdsjgd.shaddja/jjafs?",
-    "paymentType":"00",
-    "callbackUr":"https://exmepdsa.com/sdgsge",
-    "payOrderList":[
-        {
-            "merSingleNo":"SDF2551535",
-            "payeeAccountNo":"EE2563461613461 ",
-            "identity":"321461466413461436",
-            "amount":1000000,
-            "cNAPSCode":"dserqt",
-            "tradeCodeType":"qe",
-            "payMethod":"qerq",
-            "declarationCurrency":"wtwerywyw",
-            "advanceProportion":"ojfosjgjaoa",
-            "settlementDate":"kadagodgj",
-            "senderName":"Eege Esgg",
-            "senderIncorporationNo":"wqthdfqr",
-            "registrationRegion":"rywrsdgah sgsrg",
-            "senderBankName":"ghtwjsht",
-            "sourceFounds":"ergwr",
-            "senderBankAccountNo":"fdrehwhwg",  
-        }
-    ],
-}
-```
-**3 请求字段**  
-
-| 名称         | Json标签     | 类型                    | 属性 | 取值说明                                                                                      |
-| ------------ | ------------ | ----------------------- | ---- | --------------------------------------------------------------------------------------------- |
-| 订单号       | merOrderNo   | String(32)              | M    | 本次交易唯一订单号                                                                            |
-| 还原材料路径 | fileUrlPath  | String(128)             | O    | 上传至sftp文件服务器的还原材料路径                                                            |
-| 交易类型     | paymentType  | String                  | M    | [参数详见字段说明](#_6-1-1-paymenttype-交易类型)                                              |
-| 回调地址     | callbackUrl  | String                  | M    | 用于结果通知的地址                                                                            |
-| 收款人列表   | payOrderList | `List<PayOrderRequest>` | M    | 收款信息                                                                                      |
-| 手续费标识   | feeFlag      | String(1)               | O    | 当手续费为实时收取时，用户可自行选择内扣还是外扣。<br/>1：外扣，0：内扣                       |
-| 还原材料列表 | payReduceList| `List<payReduceList>`   | O    | 当收款信息交易编码为游戏、电商、一般贸易填写[参数详见字段说明](#_6-1-2-tradecodetype-交易编码)|
-**PayOrderRequest信息**
-
-| 名称                      | Json标签              | 类型    | 属性 | 取值说明                                                                                                                          |
-| ------------------------- | --------------------- | ------- | ---- | --------------------------------------------------------------------------------------------------------------------------------- |
-| 单笔订单号                | merSingleNo           | String  | O    | 单个付款记录对应的订单号                                                                                                          |
-| 收款方账号                | payeeAccountNo        | String  | M    | 收款方银行账号                                                                                                                    |
-| 收款方姓名                | payeeName             | String  | M    | 收款方银行账户名                                                                                                                  |
-| 身份证号/统一社会信用代码 | identity              | String  | M    | 若收款方账户类型为0，则填写身份证号，为1则填写统一社会信用代码                                                                    |
-| 金额                      | amount                | Decimal | M    | 付款金额，单位为分，例：若付款200.00元，应填写20000最小为1                                                                        |
-| 联行号                    | cNAPSCode             | String  | M    | 收款方银行联行号                                                                                                                  |
-| 手机号                    | mobile                | String  | M    | 手机号                                                                        |
-| 交易编码                  | tradeCodeType         | String  | M    | [参数详见字段说明](#_6-1-2-tradecodetype-交易编码)                                                                                |
-| 付款方式                  | payMethod             | String  | O    | [参数详见字段说明](#_6-1-3-paymethod-支付方式),<br>tradeCodeType为TRADE并且paymentType为B2B时不能为空, <br>默认：cash_on_delivery |
-| 报关币种                  | declarationCurrency   | String  | O    | payMethod值为cash_on_delivery不能为空，默认CNY                                                                                    |
-| 预付比例                  | advanceProportion     | Float   | O    | payMethod值为advance ,0 < advanceProportion < 1 ,小数点后最多两位                                                                 |
-| 结算账期                  | settlementDate        | String  | O    | payMethod值为advance结算账期不能为空单位天                                                                                        |
-| 付款方名称                | senderName            | String  | M    | 真实付款方名称                                                                                                                    |
-| 付款方公司注册号          | senderIncorporationNo | String  | M    | 付款方公司注册号                                                                                                                  |
-| 付款方注册地              | registrationRegion    | String  | M    | 付款人住的区域swift国家地区                                                                                                       |
-| 付款方银行名称            | senderBankName        | String  | M    | 付款方银行名称                                                                                                                    |
-| 资金源                    | sourceFounds          | String  | O    | 选填                                                                                                                              |
-| 付款方银行账户            | senderBankAccountNo   | String  | O    | 付款方银行账户选填                                                                                                                |
-**payReduceList信息**
-
-| 名称      | Json标签        | 类型    | 属性  | 取值说明                                                     |
-|---------|---------------| ------- |-----|----------------------------------------------------------|
-| 订单号     | orderNo       | String  | M   | 单个付款记录对应的订单号(不超过32位)                                     |
-| 订单币种    | orderCurrency | String  | M   | 收款币种                                                     |
-| 订单金额    | orderAmount   | Decimal | M   | 收款金额，单位为分，例：若付款200.00元，应填写20000最小为1                      |
-| 订单日期    | orderDate     | String  | M   | 收款日期，格式为"yyyy-MM-dd"                                     |
-| 收款人姓名   | sellerName    | String  | C   | 收款人姓名 (交易编码为游戏时必填)                                       |
-| 收款人证件号  | sellerId      | String  | C   | 收款方证件号(长度不超过18位)(交易编码为游戏时必填)                             |
-| 商品名     | goodsName     | String  | M   | 商品名                                                     |
-| 商品种类    | goodsCategory | String  | C   | 商品种类 (交易编码为游戏时必填)                                                    |
-| 商品数量    | goodNumber    | String  | M   | 商品数量                                                     |
-| 物流公司    | wlName        | String  | C   | 物流公司名 (交易编码为一般贸易或者电商时必填)                                 |
-| 物流单号    | wlSeqno       | String  | C   | 物流单号 (交易编码为一般贸易或者电商时必填)                                  |
-| 店铺链接    | storeLink     | String  | C   | 店铺链接地址  (交易编码为一般贸易或者电商时必填)                               |
-| 平台名称    | platformName  | String  | C   | 平台名称   (交易编码为一般贸易或者电商时必填)                                |
-| 汇款用途    | purpose       | String  | C   | [汇款用途代码参数](#_6-1-7-tradepurpose-汇款用途代码) (交易编码为一般贸易或者电商时必填) |
-| 买家银行名   | buyerBankName | String  | O   | 买家银行名                                                    |
-| 买家银行卡号  | buyerBankCard | String  | O   | 买家银行卡号                                                   |
-| 交易方式    | sendType      | String  | O   | 发货方式                                                     |
-| 快递金额    | sendAmount    | Decimal | O   | 快递金额，单位为分，例：若付款200.00元，应填写20000最小为1                      |
-| 税费金额    | taxAmount     | Decimal | O   | 税费金额，单位为分，例：若付款200.00元，应填写20000最小为1                      |
-| 其他金额    | otherAmount   | Decimal | O   | 其他金额，单位为分，例：若付款200.00元，应填写20000最小为1                      |
-| 申报人类型   | applyType     | String  | O   | 申报人类型                                                    |
-
-
-**4 响应字段**
-
-若响应报文头内respCode为S00000，则为受理成功，请等待异步通知（见[5.2.1 付款回调](#_5-2-1-系统通知商户付款结果)）付款结果。报文体：当
-respCode为S00000时：
-
-| 名称         | Json标签        | 类型       | 属性 | 取值说明                                          |
-| ------------ | --------------- | ---------- | ---- | ------------------------------------------------- |
-| 订单号       | merOrderNo      | String(32) | M    | 原样返回                                          |
-| 业务流水号   | bizFlowNo       | String(32) | M    | Ottpayhk生成的唯一业务流水号，与订单号一一对应    |
-| 状态         | status          | String(1)  | M    | "0":"接受", "1":"成功", "2":"失败",  "3":"处理中" |
-| 手续费币种   | feeCurrency     | String(3)  | O    | 所收取的手续费币种                                |
-| 手续费币种   | feeAmount       | Decimal    | O    | 所收取的手续费金额                                |
-| 实际付款金额 | actualPayAmount | Decimal    | O    | 实际付款金额                                      |
-
-
-### 5.1.2 牌价查询接口
-
-**1 功能描述**
-
-|          |                            |
-| -------- | -------------------------- |
-| 交易代码 | TP1002                     |
-| 功能名称 | 牌价查询                   |
-| 功能描述 | 查询某币种的FX牌价         |
-| 调用方式 | 实时接口                   |
-| 调用流程 | --                         |
-| 应用场景 | 在进行FX交易前，需要先询价 |
-
-**2 请求地址**
-
-**Url：** `https://{baseUrl}/api/tp1002`
-
-**Method：** `POST`
-
-> 请求示例:
-
- ```json
-{
-    "merOrderNo":"1734276289293",
-    "sellCurrency":"USD",
-    "buyCurrency":"CNY",
-    "lockDirection":"SELL",
-    "amount":"1000.00",
-    "lockType":"T0"
-}
-```                       
-
-**3 请求字段**
-
-| 名称       | Json标签      | 类型       | 属性 | 取值说明                                                                 |
-| ---------- | ------------- | ---------- | ---- | ------------------------------------------------------------------------ |
-| 商户订单号 | merOrderNo    | String(32) | M    | 商户自定义的唯一订单号                                                   |
-| 卖出币种   | sellCurrency  | String(3)  | O    | 卖出币种                                                                 |
-| 买入币种   | buyCurrency   | String(3)  | M    | 买入币种                                                                 |
-| 锁定方向   | lockDirection | String(4)  | M    | 锁定卖出或买入币种;传SELL则锁定卖出币种的金额，传BUY则锁定买入币种的金额 |
-| 锁定金额   | amount        | String(20) | M    | 指定的FX金额                                                             |
-| 锁汇类型   | lockType      | String(2)  | O    | 选填字段：目前支持可选T0、T1、T2                                             |
-
-                                           
-> 返回示例:
-
-```json
-{
-    "sellCurrency":"USD",
-    "buyCurrency":"CNY",
-    "rate":"7.0102",
-    "sellAmount":"1000.00",
-    "buyAmount":"7010.20",
-    "quoteId": 7843892398239,
-    "expireTime": 1576560599598,
-    "merOrderNo":"32894398349",
-    "lockType":"T0"
-}
-```
-**4 响应字段**
-
-
-| 名称       | Json标签     | 类型       | 属性 | 取值说明                                                       |
-| ---------- | ------------ | ---------- | ---- | -------------------------------------------------------------- |
-| 卖出币种   | sellCurrency | String(3)  | M    | 卖出币种                                                       |
-| 买入币种   | buyCurrency  | String(3)  | M    | 买入币种                                                       |
-| 汇率       | rate         | String(18) | M    | 汇率报价                                                       |
-| 卖出金额   | sellAmount   | String(18) | M    | 卖出金额                                                       |
-| 买入金额   | buyAmount    | String(20) | M    | 买入金额                                                       |
-| 报价ID     | quoteId      | Long       | M    | 报价ID                                                         |
-| 报价有效期 | expireTime   | Long       | M    | unix时间戳，此次询价的有效时间。如若过了有效时间，此次询价作废 |
-| 商户订单号 | merOrderNo   | String(32) | M    | 商户传入的订单号                                               |
-| 锁汇类型   | lockType     | String(2)  | O    | 锁汇类型 T0、T1、T2                                                |
-
-
-### 5.1.3 FX交易
-
-**1 功能描述**
-
-|          |                                                             |
-| -------- | ----------------------------------------------------------- |
-| 交易代码 | TP1003                                                      |
-| 功能名称 | FX交易                                                      |
-| 功能描述 | 根据询价后的牌价，发起FX交易                                |
-| 调用方式 | 实时接口                                                    |
-| 调用流程 | 在发起牌价查询接口后，根据所得到的quoteId，发起相应的FX交易 |
-| 应用场景 | --                                                          |
-
-**2 请求地址**
-
-**Url：** `https://{baseUrl}/api/tp1003`
-
-**Method：** `POST`
-
-> 请求示例:
-
-```json
-{
-    "quoteId": 7843892398239,
-    "callbackUrl":"https://xxxx.xxxx.xxxx/xxxx/xxxx"
-}
-
-```
-**3 请求字段**
-
-| 名称    | Json标签    | 类型        | 属性 | 取值说明    |
-| ------- | ----------- | ----------- | ---- | ----------- |
-| 报价ID  | quoteId     | Long        | M    | 报价ID      |
-| 回调url | callbackUrl | String(256) | M    | 回调通知Url |
-
-                                                                   
-> 返回示例:
-
-```json
-{
-    "sellCurrency":"USD",
-    "buyCurrency":"CNY",
-    "rate":"7.0102",
-    "sellAmount":"1000.00",
-    "buyAmount":"7010.20",
-    "quoteId": 7843892398239,
-    "expireTime": 1576560599598,
-    "merOrderNo":"32894398349",
-    "lockType":"T0"
-}
-```
-**4 响应字段**
-
-
-| 名称       | Json标签     | 类型       | 属性 | 取值说明               |
-| ---------- | ------------ | ---------- | ---- | ---------------------- |
-| 卖出币种   | sellCurrency | String(3)  | M    | 卖出币种               |
-| 买入币种   | buyCurrency  | String(3)  | M    | 买入币种               |
-| 汇率       | rate         | String(18) | M    | 汇率报价               |
-| 卖出金额   | sellAmount   | String(18) | M    | 卖出金额               |
-| 买入金额   | buyAmount    | String(20) | M    | 买入金额               |
-| 报价ID     | quoteId      | Long       | M    | 报价ID                 |
-| 结果码     | code         | String     | M    | Fx交易结果码           |
-| 结果描述   | message      | String     | M    | 交易结果描述           |
-| 交易流水号 | bizFlow      | String(32) | M    | 对应Fx交易的唯一流水号 |
-| 锁汇类型   | lockType     | String(2)  | O    | 锁汇类型 T0、T1        |
-
-
-### 5.1.4 国际汇款接口
-
-**1 功能描述**
-
-|          |                                                                                                              |
-| -------- | ------------------------------------------------------------------------------------------------------------ |
-| 交易代码 | TP1004                                                                                                       |
-| 功能名称 | 国际汇款接口                                                                                                 |
-| 功能描述 | 发起国际汇款，向境外收款人发起汇款。                                                                         |
-| 调用方式 | 实时接口                                                                                                     |
-| 调用流程 | 调用[5.3.9 查询国际付款字段](#_5-3-9-查询国际付款字段)获取收款方所需字段后，依据相应字段，向收款人发起汇款。 |
-| 应用场景 | 发起国际汇款，向境外收款人发起汇款                                                                           |
-
-**2 请求地址**
-
-**Url：** `https://{baseUrl}/api/tp1004`
-
-**Method：** `POST`
-
-> 请求示例:
-
-```json
-{
-    "merOrderNo":"1245",
-    "countryCode":"gb",
-    "arriveCurrency": "gbp",
-    "debitCurrency": "gbp",
-    "payType": "local",
-    "accountType": "1",
-    "arriveAmount":"100",
-    "purpose":"1",
-    "payer": {
-        "payerCompanyName":"demo company",
-        "payerAddress":"No.2 Street",
-        "payerCountry":"hk",
-        "endSenderName":"fwefwe",
-        "payerCompanyRegisterNo":"wegwefwef",
-        "payerBankName":"fwef"
-    },
-    "payee": {
-        "bankAcctType":"01",
-        "payeeCompanyName":"payee company",
-        "payeeAddress":"No.payee street",
-        "payeeZipCode":"132423",
-        "payeeCity":"London",
-        "payeeBankName":"Center bank",
-        "payeeBankAccountName":"payee company",
-        "payeeBankAccountNo":"2323r23fwef",
-        "payeeBankBranchCode":"sdfwe2d"
-    },
-    "fxBizFlow": "23434578432",
-    "tradeComments":"trade remark"
-}
-```
-**3 请求字段**
-
-| 名称         | Json标签       | 类型   | 属性 | 取值说明                                                                               |
-| ------------ | -------------- | ------ | ---- | -------------------------------------------------------------------------------------- |
-| 商户订单号   | merOrderNo     | string | M    | 商户自定义订单号，需唯一                                                               |
-| 收款国家     | countryCode    | string | M    | iso 3166-1标准2字代码                                                                  |
-| 收款币种     | arriveCurrency | string | M    | 收款方币种，3位标准货币代码                                                            |
-| 扣款币种     | debitCurrency  | string | M    | 扣款币种，3位标准货币代码                                                              |
-| 付款方式     | payType        | string | M    | 可选值：local 或者 swift                                                               |
-| 收款账户类型 | accountType    | string | M    | 暂只支持输入 1（银行账户）                                                             |
-| 扣款金额     | debitAmount   | string | C    | 扣款金额，即扣款币种对应金额                                             |
-| 收款金额     | arriveAmount   | string | C    | 收款金额（扣款金额和收款金额2选1填写，若同时填写，以收款金额为准）                     |
-| 汇款目的     | purpose        | string | M    | 详见[6.1.4汇款目的列表](#_6-1-4-purpose-付款目的)                                      |
-| 付款方字段   | payer          | object | M    | 按照相应国家tp3005返回的数据进行填写                                                   |
-| 收款方字段   | payee          | Object | M    | 按照相应国家tp3005返回的数据进行填写                                                   |
-| 关联fx流水号 | fxBizFlow      | String | O    | 关联fx流水号，若填写此字段，则本接口不校验余额，<br>但扣款金额不能大于对应fx订单的金额 |
-| 汇款附言     | tradeComments  | String | O    | 汇款附言                                                                               |
-| 汇款目的备注 | purposeRemark  | String | O    | 当purpose为99时，汇款目的以此为准                                                      |
-
-                                                                
-**4 响应字段**
-
-
-| 名称         | Json标签       | 类型   | 属性 | 取值说明                         |
-| ------------ | -------------- | ------ | ---- | -------------------------------- |
-| 扣款币种     | debitCurrency  | String | M    | 扣款币种                         |
-| 收款币种     | arriveCurrency | String | M    | 收款币种                         |
-| 汇率         | rate           | String | M    | 汇率                             |
-| 扣款金额     | debitAmount    | String | M    | 扣款金额                         |
-| 收款金额     | arriveAmount   | String | M    | 收款金额                         |
-| 报价ID       | quoteId        | long   | M    | 报价ID                           |
-| 报价有效期   | expireTime     | long   | M    | unix时间戳，此次询价的有效时间。 |
-| 商户订单号   | merOrderNo     | String | M    | 商户传入的订单号                 |
-| 关联fx流水号 | fxBizFlow      | String | O    | 关联fx流水号                     |
-
-### 5.1.5 国际汇款交易确认
-
-**1 功能描述**
-
-|          |                                                                                |
-| -------- | ------------------------------------------------------------------------------ |
-| 交易代码 | TP1005                                                                         |
-| 功能名称 | 国际汇款交易确认                                                               |
-| 功能描述 | 确认国际汇款交易，正式提交。                                                   |
-| 调用方式 | 实时接口                                                                       |
-| 调用流程 | 调用[5.1.4 国际汇款接口](#_5-1-4-国际汇款接口)提交交易后，调用此接口确认交易。 |
-| 应用场景 | 发起国际汇款，向境外收款人发起汇款后，确认国际汇款交易，正式提交。             |
-
-**2 请求地址**
-
-**Url：** `https://{baseUrl}/api/tp1005`
-
-**Method：** `POST`
-
-**3 请求字段**
-
-| 名称    | Json标签    | 类型   | 属性 | 取值说明    |
-| ------- | ----------- | ------ | ---- | ----------- |
-| 报价ID  | quoteId     | Long   | M    | 报价ID      |
-| 回调url | callbackUrl | String | M    | 回调通知Url |
-                                                                   
-
-**4 响应字段**
-
-
-| 名称         | Json标签       | 类型   | 属性 | 取值说明                     |
-| ------------ | -------------- | ------ | ---- | ---------------------------- |
-| 报价ID       | quoteId        | long   | M    | 报价ID                       |
-| 收款国家     | countryCode    | string | M    | iso 3166-1标准2字代码        |
-| 收款币种     | arriveCurrency | string | M    | 收款方币种，3位标准货币代码  |
-| 扣款币种     | debitCurrency  | string | M    | 扣款币种，3位标准货币代码    |
-| 付款方式     | payType        | string | M    | 可选值：local 或者 swift     |
-| 收款账户类型 | accountType    | string | M    | 暂只支持输入 1（银行账户）   |
-| 付款金额     | arriveAmount   | string | M    | 收款金额                     |
-| 扣款金额     | debitAmount    | String | M    | 扣款金额                     |
-| 汇率         | rate           | String | M    | 汇率                         |
-| 状态         | status         | String | M    | 订单状态                     |
-| 结果码       | code           | String | M    | 交易结果码                   |
-| 结果描述     | message        | String | M    | 交易结果描述                 |
-| 交易流水号   | bizFlow        | String | M    | 对应国际汇款交易的唯一流水号 |
-| 商户订单号   | merOrderNo     | String | M    | 商户订单号                   |
-| 关联fx流水号 | fxBizFlow      | String | O    | 关联fx流水号                 |
-
-### 5.1.6 提现接口
-
-**1 功能描述**
-
-|          |                                                  |
-| -------- | ------------------------------------------------ |
-| 交易代码 | TP1008                                           |
-| 功能名称 | 提现交易申请                                     |
-| 功能描述 | 用于发起境外提现，需提现账户名与商户注册名称相同 |
-| 调用方式 | 实时接口                                         |
-| 调用流程 | --                                               |
-| 应用场景 | 用于发起境外提现，需提现账户名与商户注册名称相同 |
-
-<aside class="success">
-默认提现账户名称即为商户入网时提供的注册名称 
-</aside>
-
-**2 请求地址**
-
-**Url：** `https://{baseUrl}/api/tp1008`
-
-**Method：** `POST`
-
-> 请求示例:
-
-```json
-{
-    "merOrderNo":"8793478374",
-    "currency":"USD",
-    "amount": 10000.00,
-    "bankAccountNo": "6248348342123342",
-    "bankName": "Citibank",
-    "bankAddress": "Queens Road, New York",
-    "swiftCode":"7643843",
-    "proxyBankName":"",
-    "proxyBankAddress": "",
-    "proxySwiftCode":"",
-    "remark":"xxx公司贸易提现款项",
-    "callbackUrl":"https://xxxx.xxxxxx.xx/xx"
-}
-```
-
-**3 请求字段**
-
-| 名称             | Json标签         | 类型          | 属性 | 取值说明                   |
-| ---------------- | ---------------- | ------------- | ---- | -------------------------- |
-| 商户订单号       | merOrderNo       | string(32)    | M    | 商户传入本次交易唯一订单号 |
-| 币种             | currency         | string(3)     | M    | 提现币种，3位标准货币代码  |
-| 金额             | amount           | decimal(18,2) | M    | 提现金额                   |
-| 银行账号/IBAN    | bankAccountNo    | string(64)    | M    | 提现银行账号或IBAN         |
-| 银行名称         | bankName         | string(64)    | M    | 提现银行名称               |
-| 银行地址         | bankAddress      | string(256)   | M    | 提现银行的地址             |
-| swift code       | swiftCode        | string(32)    | M    | 提现银行的swift code       |
-| 代理行名称       | proxyBankName    | string(64)    | O    | 代理行名称                 |
-| 代理行地址       | proxyBankAddress | string(256)   | O    | 代理行地址                 |
-| 代理行swift code | proxySwiftCode   | string(32)    | O    | 代理行swift code           |
-| 汇款附言         | remark           | string(64)    | O    | 汇款附言                   |
-| 回调url          | callbackUrl      | string(256)   | M    | 回调通知Url                |
-                                                                   
-> 返回示例:
-
-```json
-{
-    "merOrderNo":"8793478374",
-    "bizFlow":"2184394993483534",
-    "status": "PROCESS",
-    "code": "",
-    "message": ""
-}
-```
-**4 响应字段**
-
-
-| 名称       | Json标签   | 类型       | 属性 | 取值说明                   |
-| ---------- | ---------- | ---------- | ---- | -------------------------- |
-| 商户订单号 | merOrderNo | string(32) | M    | 商户传入本次交易唯一订单号 |
-| 业务流水号 | bizFlow    | string(32) | M    | OTT生成的唯一流水号        |
-| 状态       | status     | string(8)  | M    | 交易结果状态               |
-| 结果码     | code       | string(8)  | M    | 交易结果代码               |
-| 结果描述   | message    | string(64) | M    | 交易结果描述               |
-
-
-
-### 5.1.7 子商户入网
-
-**1 功能描述**
-
-|          |                                                                                                            |
-| -------- | ---------------------------------------------------------------------------------------------------------- |
-| 交易代码 | TP1006                                                                                                     |
-| 功能名称 | 商户入网申请                                                                                               |
-| 功能描述 | 收集商户资料，完成商户入网                                                                                 |
-| 调用方式 | 实时接口                                                                                                   |
-| 调用流程 | --                                                                                                         |
-| 应用场景 | 本指引目的为OTTPAY HK收集商户资料信息，OTTPAY HK方资质审查后，予以商户资质审批通过，可为商户提供后续服务。 |
-
-**2 请求地址**
-
-**Url：** `https://{baseUrl}/api/tp1006`
-
-**Method：** `POST`
-> 请求示例:
-
-```json
-{
-        "authorizationPaths": [
-            "uploadFile/IMG_9289.PNG"
-        ],
-        "averageTransactionAmount": "3841000",
-        "businessBackground": "交易背景",
-        "callbackUrl": "https://tttt.callback.xxx.com/api/callback",
-        "companyWebsite": "https://www.company.baidu.com",
-        "contactPhoneNumber": "+861453453453",
-        "country": "HK",
-        "directorPaths": [
-            "uploadFile/IMG_9289.PNG"
-        ],
-        "employeeNumber": "1000",
-        "goodstandPaths": [
-            "uploadFile/IMG_9289.PNG"
-        ],
-        "incorporationPaths": [
-            "uploadFile/IMG_9289.PNG"
-        ],
-        "mailingAddress": "通信地址",
-        "maxTransactionAmount": "882200",
-        "merNameEn": "Test API Mer Kyc Company1",
-        "merchantApplicationPath": [
-            "uploadFile/IMG_9289.PNG"
-        ],
-        "mermorandumPaths": [
-            "uploadFile/IMG_9289.PNG"
-        ],
-        "officePaths": [
-            "uploadFile/IMG_9289.PNG"
-        ],
-        "ownershipPaths": [
-            "uploadFile/IMG_9289.PNG"
-        ],
-        "ownershipType": "A",
-        "paymentPurpose": [
-            "医疗费",
-            "酒店费用"
-        ],
-        "permonthTransactionAmount": "55000",
-        "permonthTransactionNumber": 8345234,
-        "personAddressPaths": [
-            "uploadFile/IMG_9289.PNG"
-        ],
-        "personIdentiPaths": [
-            "uploadFile/IMG_9289.PNG"
-        ],
-        "projectPersonMail": "453523@163.com",
-        "projectPersonName": "张三",
-        "projectPersonPosition": "CEO",
-        "registerCapital": "1000万元",
-        "registrationAddress": "注册地址",
-        "saleOne": "1000000",
-        "saleThree": "100",
-        "saleTwo": "10000",
-        "serviceProvided": [
-            "进出口",
-            "本地速递服务"
-        ],
-        "shareholderPaths": [
-            "uploadFile/IMG_9289.PNG"
-        ],
-        "shopWebsite": "https://www.baidu.com",
-        "sourceFunds": [
-            "劳务收入",
-            "投资收益"
-        ],
-        "suppliers": [
-            {
-                "supplierCountry": "HK",
-                "supplierName": "xxx服务公司"
-            },
-            {
-                "supplierCountry": "AU",
-                "supplierName": "EGTH Limited"
-            }
-        ],
-        "tradeClients": [
-            {
-                "tradeClientCountry": "HK",
-                "tradeClientName": "TUIREO Limited"
-            }
-        ],
-        "projectPersonPhone": "+861238345345"
-    }
-```                          
-**3 请求字段**
-
-| 名称         | Json标签      | 类型        | 属性 | 取值说明        |
-| ------------ | ------------- | ----------- | ---- | --------------- |
-| 所在国家     | country       | string(2)   | M    | iso 2位国家代码 |
-| 公司英文名称 | merNameEn     | string(255) | M    | 公司英文名称    |
-| 公司中文名称 | merName       | string(255) | O    | 公司中文名称    |
-| 所有权类型               | ownershipType         | string(1)   | O    | 所有权类型：<br/>A. 独资企业<br/>B. 合营企业<br/>C. 有限公司<br/>D. 上市公司 |
-| 业务性质                 | businessBackground    | string(255) | O    | 业务性质                                                                     |
-| 销售网址                 | shopWebsite    | string(255) | O    | 销售网址                                                                     |
-| 公司官网                 | companyWebsite    | string(255) | O    | 公司官网                                                                     |
-| 公司注册地址             | registrationAddress   | string(255) | M    | 公司注册地址                                                                 |
-| 公司通信地址             | mailingAddress        | string(255) | O    | 公司通信地址                                                                 |
-| 员工人数             | employeeNumber        | string(255) | O    | 员工人数  |
-| 注册资本             | registerCapital        | string(255) | O    | 注册资本 |
-| 业务电话             | contactPhoneNumber        | string(255) | O    | 业务电话 |
-| 授权管理员姓名               | projectPersonName     | string(255) | O    | 授权管理员姓名                          |
-| 授权管理员职位               | projectPersonPosition | string(255) | O    | 授权管理员职位                         |
-| 授权管理员电话               | projectPersonPhone    | string(255) | O    | 授权管理员电话                         |
-| 授权管理员邮箱               | projectPersonMail     | string(255) | M    | 授权管理员邮箱                          |
-| 提供的产品和服务         | serviceProvided       | string(255) | O    | 提供的产品和服务                                                             |
-| 客户收取的钱款性质       | sourceFunds           | list(10)    | O    | 描述您的客户收取的钱款性质（钱款来源）                                       |
-| 发送给客户的钱款性质     | paymentPurpose        | list(10)    | O    | 描述您发送给客户的钱款性质（款项去向）                                       |
-| 分公司的国家地区     | residesCountry        | list(10)    | O    | 分公司的国家地区         |
-| 主要供应商和所在国家地区     | suppliers        | list(5)    | O    | 主要供应商和所在国家地区         |
-| 主要供应商名称     | supplierName        | string(35)    | O    | 主要供应商名称(属于suppliers下)         |
-| 主要供应商所在国家地区     | supplierCountry        | string(2)    | O    | 主要供应商所在国家地区(属于suppliers下)         |
-| 主要客户名称和所在国家     | tradeClients        | list(5)    | O    | 主要客户名称和所在国家         |
-| 主要客户名称     | tradeClientName        | string(35)    | O    | 主要客户名称(属于trades下)         |
-| 主要客户名所在国家     | tradeClientCountry        | string(2)    | O    | 主要客户名所在国家(属于trades下)         |
-| 1年前销售额      | saleOne  | decimal(18,2)    | O    | 1年前销售额（单位USD）        |
-| 2年前销售额     | saleTwo        | decimal(18,2)    | O    | 2年前销售额（单位USD）        |
-| 3年前销售额     | saleThree        | decimal(18,2)    | O    | 3年前销售额（单位USD）        |
-| 预估业务笔数 (每月)     | permonthTransactionNumber        | int    | O    | 预估业务笔数 (每月)        |
-| 预估总交易量 (每月)     | permonthTransactionAmount        | decimal(18,2)    | O    | 预估总交易量 (每月)（单位USD）        |
-| 预估平均每笔交易量     | averageTransactionAmount        | decimal(18,2)    | O    | 预估平均每笔交易量（单位USD）        |
-| 预估单笔最大交易额     | maxTransactionAmount        | decimal(18,2)    | O    | 预估单笔最大交易额（单位USD）       |
-| 商户服务合作申请表       | merchantApplicationPath           | list(5)     | O    | 商户服务合作申请表          |
-| 公司注册证明             | incorporationPaths    | list(5)     | M    | 公司注册证明                                                                 |
-| 公司章程                 | mermorandumPaths      | list(5)     | O    | 公司章程                                                                     |
-| 良好存续证明             | goodstandPaths        | list(5)     | O    | 良好存续证明                                                                 |
-| 董事名册             | directorPaths        | list(5)     | O    | 董事名册                                                                 |
-| 股东名册             | shareholderPaths        | list(5)     | O    | 股东名册                                                                 |
-| 重要人员身份证文件       | personIdentiPaths     | list(5)     | O    | 重要人员身份证文件                                                           |
-| 重要人员地址证明文件     | personAddressPaths    | list(5)     | O    | 重要人员地址证明文件                                                         |
-| 董事会决议/授权书        | authorizationPaths    | list(5)     | O    | 董事会决议/授权书                                                            |
-| 公司股权架构图           | ownershipPaths        | list(5)     | O    | 公司股权架构图                                                               |
-| 办公室现场照片           | officePaths        | list(5)     | O    | 办公室现场照片                                                               |
-| 回调URL                  | callbackUrl           | string(255) | M    | 回调URL，OTTPAY HK后台审核后，将会回调此URL                                  |
-
-                                                                                 
-> 返回示例:
-
-```json
-{
-        "bizFlow":"210622162803810002",
-        "status": "ACCEPT",
-        "code":"S00001",
-        "message":"ACCEPT"
-}
-```
-**4 响应字段**
-
-
-| 名称       | Json标签 | 类型        | 属性 | 取值说明                                                          |
-| ---------- | -------- | ----------- | ---- | ----------------------------------------------------------------- |
-| 业务流水号 | bizFlow  | string(32)  | M    | 入网申请唯一订单号                                                |
-| 状态 | status  | string(6)  | M    | 申请状态码 ACCEPT:接受成功，等待回调                                              |
-| 结果码     | code     | string(6)   | M    | 响应结果代码，S00001 代表已接收成功，<br/>等待OTTPAY HK审核后回调 |
-| 结果描述   | message  | string(255) | M    | 响应描述                                                          |
-
-
-
-### 5.1.8 一级商户入网
+## 5.1 商户入网
+### 5.1.1 一级商户入网
 
 **1 功能描述**
 
@@ -1070,14 +404,14 @@ respCode为S00000时：
 | 周年年报      | nnc1Path | `List<String>` | O   | 当公司属于境外时                                                 |
 | 法团成立表     | nar1Path1 | `List<String>` | C   | 当公司为境外公司必传                                               |
 | 公司章程      | mermorandum | `List<String>` | C   | 当公司为境外公司必传                                               |
-| 客户身份      | customerIdentity | String(4) | M   | 入网客户的身份 [参数详见6.1.10字段说明](#_6-1-10-customeridentity-客户身份) |
+| 客户身份      | customerIdentity | String(4) | M   | 入网客户的身份 [参数详见6.1.10字段说明](#6-1-10-customeridentity) |
 | 客户个人证件    | customerId | `List<personInfo>` | M   | 客户的身份证件照                                                 |
 | 持股25%以上股东 | shareholder | `List<personInfo>` | M   | 持股25%以上股东的信息                                             |
 | 公司董事      | director | `List<personInfo>` | C   | 公司董事信息，非CN国家必传                                           |
 | 法人        | legalPerson | `List<personInfo>` | C   | 法人信息，国家为CN时必传                                            |
 | 董事会议授权书   | authorization | `List<String>` | M   | 董事会议授权书                                                  |
-| 资金来源      | sourceFunds | `List<String>` | M   | 资金主要来源 [参数详见6.1.8字段说明](#_6-1-8-sourcefunds-资金来源)         |
-| 付款目的      | paymentPurpose | `List<String>` | M   | 付款主要目的 [参数详见6.1.9字段说明](#_6-1-9-paymentpurpose-付款目的)      |
+| 资金来源      | sourceFunds | `List<String>` | M   | 资金主要来源 [参数详见6.1.8字段说明](#6-1-8-sourcefunds)         |
+| 付款目的      | paymentPurpose | `List<String>` | M   | 付款主要目的 [参数详见6.1.9字段说明](#6-1-9-paymentpurpose)      |
 | 风险交易国家    | riskCountryTransaction | String(2) | M   | 0：无 1：有 是否有伊朗、朝鲜、古巴地区有任何直接或间接的业务                         |
 | 风险国家信息    | riskCountries | `List<companyInfo>` | C   | 当有和以上风险国家企业交易时，提供企业信息                                    |
 | 是否为补充请求   | addMaterial | String(2) | O   | 0：否 1：是 当回调code为80000时，需要请求加上补充材料                        |
@@ -1131,22 +465,27 @@ respCode为S00000时：
 
 
 
-### 5.1.9 商户内部间转账
+
+###  5.1.2 商户入网结果通知
 
 **1 功能描述**
 
-|          |                                              |
-| -------- | -------------------------------------------- |
-| 交易代码 | TP1010                                       |
-| 功能名称 | 商户内部间转账                             |
-| 功能描述 | 同为在OTT注册的商户，向对方OTT账户进行转账                 |
-| 调用方式 | 实时接口                                     |
-| 调用流程 | --                                           |
-| 应用场景 | 同为在OTT注册的商户，向对方OTT账户进行转账 |
+|          |                                                                                                                                                               |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 交易代码 | TP2004                                                                                                                                                        |
+| 功能名称 | 商户入网结果通知                                                                                                                                              |
+| 功能描述 | 商户入网结果异步通知                                                                                                                                          |
+| 调用方式 | 通知接口                                                                                                                                                      |
+| 调用流程 | --                                                                                                                                                            |
+| 应用场景 | [商户入网信息完善](#5-1-1)发起成功且交易处理完毕后，将根据[商户入网信息完善](#5-1-1)参数内的回调Url进行回调通知最终结果。 |
+
+<aside class="success">
+本通知将按照间隔时间渐长的方式持续通知24小时.<br>商户应当以http 200返回，若通知持续时间结束仍未正常返回，则不再通知。
+</aside>
 
 **2 请求地址**
 
-**Url：** `https://{baseUrl}/api/tp1010`
+**Url：** [商户入网信息完善](#5-1-1)中的 **callbackUrl**
 
 **Method：** `POST`
 
@@ -1154,37 +493,71 @@ respCode为S00000时：
 
 ```json
 {
-        "merOrderNo":"150",
-        "toAcctNo":"006804100255",
-        "toAcctName":"TEST",
-        "currency":"USD",
-        "amount":"100",
-        "purpose":"1",
-        "remark":""
+        "bizFlow":"87200408378515100071",
+        "code":"S00000",
+        "message":"SUCCESS",
+        "merchantNo":"005703100153",
+        "merNameEn":"Demo Company Limited"
 }
-```                
+```
+**3 请求字段**
+
+| 名称         | Json标签      | 类型        | 属性 | 取值说明                          |
+| ------------ | ------------- | ----------- | ---- | --------------------------------- |
+| 业务流水号   | bizFlow       | string(32)  | M    | 入网申请唯一订单号                |
+| 结果码       | code          | string(6)   | M    | 响应结果代码，S00000 代表入网成功 |
+| 结果描述     | message       | string(255) | M    | 响应描述                          |
+| 商户号       | merchantNo    | string(32)  | M    | 商户号，为商户的唯一标识号码      |
+| 商户英文名称 | merNameEn     | string(255) | M    | 商户英文名称                      |
+| 授权码       | authorizeCode | string(32)  | M    | 授权码                            |
+
+
+
+## 5.2 授权
+### 5.2.1 申请授权
+**1 功能描述**
+
+|          |                                                                |
+| -------- |----------------------------------------------------------------|
+| 交易代码 | TP9001                                                         |
+| 功能名称 |申请授权                                                   |
+| 功能描述 | 【待补充】                                                  |
+| 调用方式 | 实时接口                                                           |
+| 调用流程 | --                                                             |
+| 应用场景 | 【【待补充】】 |
+
+
+**2 请求地址**
+
+**Url：** `https://{baseUrl}/api/TP9001`
+
+**Method：** `POST`
+
+> 请求示例:
+
+```json
+{
+        "redirectUrl":"xxxxxxxxxxxxx",
+        "merchantNo":"005703100153"
+}
+```    
+
 
 **3 请求字段**
 
 | 名称                     | Json标签              | 类型        | 属性 | 取值说明                                                                     |
 | ------------------------ | --------------------- | ----------- | ---- | ---------------------------------------------------------------------------- |
-| 商户订单号                   | merOrderNo               | string(32)  | M    | 商户自定义的唯一订单号                                                                       |
-| 收款方账号             | toAcctNo   | string(32) | M    | 收款方账号                                                                 |
-| 收款方账户名             | toAcctName        | string(255) | M    | 收款方账户名                                                                 |
-| 转账币种               | currency         | string(3)   | M    | 转账币种 |
-| 转账金额               | amount     | Decimal(18,2) | M    | 转账金额                                                                   |
-| 汇款目的               | purpose | string(3) | M    | 汇款目的，参见附录6.1.4付款目的                                                             |
-| 附言               | remark    | string(255) | O   | 附言                                                                   |
+| 重定向URL                   | redirectUrl               | string(255)  | M    | 重定向 url，仅接受 https url号                                                                       |
+| 商户编号             |  merchantNo   | string(255) | M    | 代理商的商户号                                                                |
 
-                                                 
+
+
 > 返回示例:
 
 ```json
 {
-        "bizFlow": "70210415775519090003",
-        "status": "SUCC",
-        "feeCurrency": "USD",
-        "feeAmount": "2.50"
+     "authorizeCode": "e10adc3949ba59abbe56e057f20f883e"
+ 
 }
 ```
 
@@ -1193,14 +566,69 @@ respCode为S00000时：
 
 | 名称       | Json标签 | 类型        | 属性 | 取值说明                                                          |
 | ---------- | -------- | ----------- | ---- | ----------------------------------------------------------------- |
-| 业务流水号 | bizFlow  | string(32)  | M    | OTT侧唯一业务订单号                                                |
-| 结果状态     | status     | string(6)   | M    | 结果状态 SUCC：成功 FAIL：失败 |
-| 手续费币种   | feeCurrency  | string(3) | O    | 手续费币种，若手续费模式为实时收取时，则返回此字段                      |
-| 手续费金额   | feeAmount  | string(22) | O    | 手续费金额，若手续费模式为实时收取时，则返回此字段                       |
+| 授权码 | authorizeCode  | string(32)  | M    | 授权码                                                |
 
 
 
-### 5.1.10 VA开户申请
+### 5.2.2 申请token
+【待补充】
+
+**1 功能描述**
+
+|          |                                                                |
+| -------- |----------------------------------------------------------------|
+| 交易代码 | TP9002                                                         |
+| 功能名称 |申请token                                                  |
+| 功能描述 | 【待补充】                                                  |
+| 调用方式 | 实时接口                                                           |
+| 调用流程 | --                                                             |
+| 应用场景 | 【【待补充】】 |
+
+
+**2 请求地址**
+
+**Url：** `https://{baseUrl}/api/TP9002`
+
+**Method：** `POST`
+
+> 请求示例:
+
+```json
+{
+    "authorizeCode": "e10adc3949ba59abbe56e057f20f883e"
+}
+```    
+
+
+**3 请求字段**
+
+| 名称                     | Json标签              | 类型        | 属性 | 取值说明                                                                     |
+| ------------------------ | --------------------- | ----------- | ---- | ---------------------------------------------------------------------------- |
+| 授权码                   |  authorizeCode               | string(32)  | M    | 授权码                                                            |
+
+
+
+> 返回示例:
+
+```json
+{
+     "accessToken": "7c4a8d09ca3762af61e59520943dc26494"
+ 
+}
+```
+
+**4 响应字段**
+
+
+| 名称       | Json标签 | 类型        | 属性 | 取值说明                                                          |
+| ---------- | -------- | ----------- | ---- | ----------------------------------------------------------------- |
+| 授权token | accessToken  | string(32)  | M    | 授权 Token(目前 Token 永久有效)                                                |
+
+
+
+## 5.3 收款
+
+### 5.3.1 VA开户申请
 
 **1 功能描述**
 
@@ -1255,22 +683,23 @@ respCode为S00000时：
 
 
 
-### 5.1.11 收款流水和贸易订单关联
+### 5.3.2 VA开户查询
 
 **1 功能描述**
 
-|          |                                              |
-| -------- | -------------------------------------------- |
-| 交易代码 | TP1013                                       |
-| 功能名称 | 收款流水和贸易订单关联                            |
-| 功能描述 | 收款流水和贸易订单关联                   |
-| 调用方式 | 实时接口                                     |
-| 调用流程 | --                                           |
-| 应用场景 | 商户的贸易收款订单被审核通过后，将收款流水和贸易订单做关联 |
+|          |                                                    |
+| -------- | -------------------------------------------------- |
+| 交易代码 | TP3012                                             |
+| 功能名称 | VA开户查询接口                                |
+| 功能描述 | VA开户查询接口，提交VA申请后，通过此接口查询账户具体信息                                   |
+| 调用方式 | 实时接口                                           |
+| 调用流程 | --                                                 |
+| 应用场景 | VA开户查询接口 |
 
 **2 请求地址**
 
-**Url：** `https://{baseUrl}/api/tp1013`
+
+**Url：** `https://{baseUrl}/api/tp3012`
 
 **Method：** `POST`
 
@@ -1278,54 +707,103 @@ respCode为S00000时：
 
 ```json
 {
-        "contactNo":"62291060316483300005",
-        "flowNo":"63291062211570000002",
-        "callbackUrl":"https://xxxxx.xxxx.com/callback/inAcctNoticeUrl"
+    "bizFlow":"7123498239859278274"
 }
-```          
+```                                             
 **3 请求字段**
 
-| 名称                     | Json标签              | 类型        | 属性 | 取值说明                                                                     |
-| ------------------------ | --------------------- | ----------- | ---- | ---------------------------------------------------------------------------- |
-| 贸易订单编码              | contactNo               | string(32)          | M    | 贸易订单编码，tp2008返回                                                                     |
-| 收款流水编码              | flowNo               | string(32)          | M    | 收款流水编码，tp3015返回                                         |
-| 入账通知地址              | callbackUrl            | string(255) | M    | 贸易收款入账成功后的通知地址 |
 
-                                                       
+| 名称         | Json标签   | 类型   | 属性 | 取值说明                             |
+| ------------ | ---------- | ------ | ---- | ------------------------------------ |
+| 查询起始时间 | startTime  | Long(13)   | O    | Unix13位时间戳，查询开始时间，闭区间 |
+| 查询结束时间 | endTime    | Long(13)   | O    | Unxi13位时间戳，查询结束时间，闭区间 |
+| OTT侧业务订单号       | bizFlow    | String(32)   | O    | VA开户时返回的订单号                               |
+| 商户订单号   | merOrderNo | String(32) | O    | 商户订单号                           |
+
+<aside class="success">
+若startTime与endTime没填，则bizFlow和merOrderNo中必填其一。若bizFlow和merOrderNo都没填，则startTime与endTime为必填，且间隔不能超过24小时。根据startTime和endTime的查询，最多显示100条。
+</aside>       
 
 > 返回示例:
 
 ```json
 {
-       "bizFlow":"652362763878"
+"list": [
+            {
+                "merOrderNo":"8793478374",
+                "bizFlow":"7123498239859278274",
+                "vaInfos": [
+                    {
+                        "accountName":"OTT-FinalTest",
+                        "accountNo":"7983648348",
+                        "swiftCode":"DHBKHKHH",
+                        "bankName":"China Bank(Hong Kong) Limited",
+                        "bankAddress":"11th Floor, The Center, 99 Queen’s Road Central, Central, Hong Kong",
+                        "area":"Hong Kong, CHINA",
+                        "bankCode":"016",
+                        "branchCode":"478",
+                        "currency":"SGD|NZD|JPY|HKD|GBP|EUR|CAD|AUD|USD|CNY|CHF|SEK|DKK|NOK|EGP",
+                        "status":"OPENING",
+                        "remark":"",
+                        "createTime":"1622453954000",
+                        "updateTime":"1622453954000"
+                    }
+                ]
+            }
+        ] 
 }
 ```
 
 **4 响应字段**
 
 
-| 名称       | Json标签 | 类型        | 属性 | 取值说明                                                          |
-| ---------- | -------- | ----------- | ---- | ----------------------------------------------------------------- |
-| 业务流水号 | bizFlow  | string(32)  | M    | OTT侧唯一业务订单号                                                |
+
+| 名称     | Json标签     | 类型       | 属性 | 取值说明 |
+| -------- | ------------ | ---------- | ---- | -------- |
+| 商户订单号 | merOrderNo | String(32)  | M    | 商户订单号 |
+| OTT侧业务订单号    | bizFlow    | String(32)   | M    | VA开户时返回的订单号   |
+| VA详细信息     | vaInfos         | List | M    | VA详细信息 |
 
 
 
-### 5.1.12 回调地址设置
+**VaInfo 的字段**
+
+| 名称             | Json标签         | 类型          | 属性 | 取值说明                   |
+| ---------------- | ---------------- | ------------- | ---- | -------------------------- |
+| VA账户名称       | accountName       | string(255)    | O    | VA账户名称 |
+| VA账户号             | accountNo         | string(64)     | O    | VA账户号  |
+| SwiftCode             | swiftCode           | string(11) | O    | 银行的SwiftCode                   |
+| 银行名称     | bankName  | string(128)    |   O  | 银行名称               |
+| 银行地址    | bankAddress    | string(255)    | O   | 银行地址         |
+| 国家/地区         | area         | string(64)    | O    | 国家/地区               |
+| 银行Code         | bankCode      | string(12)   | O    | 银行Code             |
+| 分行号       | branchCode        | string(12)    | O   | 分行号       |
+| 支持币种       | currency    | string(255)    | O    | 支持币种，多币种之间按照|分隔                 |
+| VA账户状态     | status           | string(8)     | M    | VA账户状态, ON:启用，OFF：禁用/拒绝 OPENING：开户中               |
+| 备注       | remark             | string(8)     | O    | 当为OFF时，会展示具体禁用/拒绝原因                 |
+| 申请时间     | createTime       | long          | M    | VA开户的申请时间               |
+| 修改时间     | updateTime       | long          | M    | VA开户的修改时间               |
+
+
+### 5.3.3 贸易收款到账通知
 
 **1 功能描述**
 
-|          |                                              |
-| -------- | -------------------------------------------- |
-| 交易代码 | TP1014                                       |
-| 功能名称 | 对于通知接口，设置回调地址                            |
-| 功能描述 | 对于通知接口，设置回调地址                   |
-| 调用方式 | 实时接口                                     |
-| 调用流程 | --                                           |
-| 应用场景 | 对于无交易传参的callback接口，单独设置回调地址 |
+| 交易代码 | TP2007                                                                                                                                   |
+| -------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| 功能名称 | 贸易收款到账通知                                                                                                                     |
+| 功能描述 | 贸易收款到账通知                                                                                                                     |
+| 调用方式 | 通知接口                                                                                                                                 |
+| 调用流程 | --                                                                                                                                       |
+| 应用场景 | 在商户的VA子账户收款收到后，OTTPAYHK会向商户发送贸易收款资金到账的通知 |
+
+<aside class="success">
+本通知将按照间隔时间渐长的方式持续通知24小时.<br>商户应当以http 200返回，若通知持续时间结束仍未正常返回，则不再通知。   
+</aside>
 
 **2 请求地址**
 
-**Url：** `https://{baseUrl}/api/tp1014`
+**Url：** 【待补充】**callbackUrl**
 
 **Method：** `POST`
 
@@ -1333,35 +811,113 @@ respCode为S00000时：
 
 ```json
 {
-        "tradeCode":"TP2007",
-        "callbackUrl":"https://xxxxx.xxxx.com/callback"
+    "flowNo":"624348793478374",
+    "receiveAmount": 10000.00,
+    "receiveCurrency": "USD",
+    "vaAccount": "789432134",
+    "senderName": "ERUIEG Limited",
+    "senderAccount": "84956984598234923",
+    "receiveTime":"1624358032"
 }
-```                                                                 
+```
+**3 请求字段**
+
+| 名称       | Json标签 | 类型   | 属性 | 取值说明                                        |
+| ---------- | -------- | ------ | ---- | ----------------------------------------------- |
+| 到账流水号 | flowNo  | string(32) | M    | 贸易收款到账唯一流水号     |
+| 到账金额       | receiveAmount | decimal(18,2) | M    | VA到账金额                    |
+| 到账币种       | receiveCurrency | string(3) | M    | VA到账币种                     |
+| 入账VA账户号       | vaAccount  | string(16) | M    | 入账的VA账户号        |
+| 付款方名称       | senderName | string(64) | O    | 付款方名称                    |
+| 付款方账号       | senderAccount | string(32) | O    | 付款方账号                   |
+| 入账时间       | receiveTime | string(10) | M    | 入账时间，10位unix时间戳                |
+
+
+
+### 5.3.4 贸易收款VA入账查询接口
+
+**1 功能描述**
+
+|          |                                                    |
+| -------- | -------------------------------------------------- |
+| 交易代码 | TP3015                                             |
+| 功能名称 | 贸易收款VA入账查询接口                               |
+| 功能描述 | 贸易收款VA入账查询接口                                   |
+| 调用方式 | 实时接口                                           |
+| 调用流程 | --                                                 |
+| 应用场景 | 可以查询VA账户具体的到账流水 |
+
+**2 请求地址**
+
+
+**Url：** `https://{baseUrl}/api/tp3015`
+
+**Method：** `POST`
+
+> 请求示例:
+
+```json
+{
+       "flowNo":"62291060316483300005"
+}
+```                                             
 
 **3 请求字段**
 
-| 名称                     | Json标签              | 类型        | 属性 | 取值说明                                                                     |
-| ------------------------ | --------------------- | ----------- | ---- | ---------------------------------------------------------------------------- |
-| 回调地址              | callbackUrl               | string(64)          | M    | 回调地址                                                                    |
-| 接口类型              | tradeCode               | string(6)          | M    | 回调的接口类型                                       |
+
+| 名称         | Json标签   | 类型   | 属性 | 取值说明                             |
+| ------------ | ---------- | ------ | ---- | ------------------------------------ |
+| 查询起始时间 | startTime  | Long(13)   | O    | Unix13位时间戳，查询开始时间，闭区间 |
+| 查询结束时间 | endTime    | Long(13)   | O    | Unxi13位时间戳，查询结束时间，闭区间 |
+| VA入账订单号 | flowNo  | string(32)          | O    | VA入账订单号    |
+
+<aside class="success">
+startTime与endTime，间隔不能超过24小时。根据startTime和endTime的查询，最多显示100条。若startTime和endTime未填写，则bizFlow为必填。
+</aside>       
 
 > 返回示例:
 
 ```json
 {
-        "code":"SUCC"
+  "list":
+        [
+           {
+               "flowNo":"624348793478374",
+               "receiveAmount": 10000.00,
+               "receiveCurrency": "USD",
+               "vaAccount": "789432134",
+               "senderName": "ERUIEG Limited",
+               "senderAccount": "84956984598234923",
+               "receiveTime":"1624358032"
+           },
+           {
+               "flowNo":"6245498990028374",
+               "receiveAmount": 20000.00,
+               "receiveCurrency": "EUR",
+               "vaAccount": "789432452",
+               "senderName": "ERUIEGdw Limited",
+               "senderAccount": "84950094592334923",
+               "receiveTime":"1622138032"
+           }
+        ]
 }
 ```
-
 **4 响应字段**
 
 
-| 名称       | Json标签 | 类型        | 属性 | 取值说明                                                          |
-| ---------- | -------- | ----------- | ---- | ----------------------------------------------------------------- |
-| 结果码     | code     | string(6)   | M    | SUCC代表成功 |
+| 名称       | Json标签 | 类型   | 属性 | 取值说明                                        |
+| ---------- | -------- | ------ | ---- | ----------------------------------------------- |
+| 交易流水号 | flowNo  | string(32) | M    | 贸易收款到账唯一流水号     |
+| 到账金额       | receiveAmount | decimal(18,2) | M    | VA到账金额                    |
+| 到账币种       | receiveCurrency | string(3) | M    | VA到账币种                     |
+| 入账VA账户号       | vaAccount  | string(16) | M    | 入账的VA账户号        |
+| 付款方名称       | senderName | string(64) | O    | 付款方名称                    |
+| 付款方账号       | senderAccount | string(32) | O    | 付款方账号                   |
+| 入账时间       | receiveTime | string(10) | M    | 入账时间，10位unix时间戳                |
 
 
-### 5.1.13 贸易订单申请
+
+### 5.3.5 贸易订单申请
 
 **1 功能描述**
 
@@ -1460,341 +1016,7 @@ respCode为S00000时：
 
 
 
-
-## 5.2 回调接口
-### 5.2.1 系统通知商户付款结果
-
-**1 功能描述**
-
-| 交易代码 | TP2001                                                                                                                                                                           |
-| -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 功能名称 | 付款回调                                                                                                                                                                         |
-| 功能描述 | Ottpayhk 通知商户付款结果                                                                                                                                                        |
-| 调用方式 | 实时接口                                                                                                                                                                         |
-| 调用流程 | 商户先调用 [5.1.1 人民币付款](#_5-1-1-人民币付款)向 Ottpayhk 发起人民币付款请求，Ottpayhk 将交易。<br>处理完毕后，通知商户。若规定时间内未及时回调通知商户，商户应该发起主动查询 |
-| 应用场景 | 商户需要知晓人民币付款最终结果                                                                                                                                                   |
-
-<aside class="success">
- 本通知将按照间隔时间渐长的方式持续通知24小时.<br>商户应当以http 200返回，若通知持续时间结束仍未正常返回，则不再通知。<br>商户应当自行通过 [5.3.1 人民币付款业务查询](#_5-3-1-人民币付款业务查询) 查询接口查询交易结果。
-</aside>
-
-**2 请求地址**
-
- **Url：** [5.1.1](#_5-1-1-人民币付款) 中的 **callbackUrl** 
-  
- **Method：** `POST`
-
-**3 请求字段**
-
-| 名称       | Json标签     | 类型          | 属性 | 取值说明                                        |
-| ---------- | ------------ | ------------- | ---- | ----------------------------------------------- |
-| 订单号     | merOrderNo   | String(32)    | M    | 原样返回                                        |
-| 业务流水号 | bizFlowNo    | String(32)    | M    | Ottpayhk 生成的唯一业务流水号，与订单号一一对应 |
-| 成功笔数   | successCount | Int           | M    | 返回成功笔数                                    |
-| 失败笔数   | faultCount   | Int           | M    | 返回失败笔数                                    |
-| 付款详情   | payeeList    | `List<payee>` | M    | 付款详情列表不分页                              |
-
-**payee 字段:**
-
-| 名称               | Json标签    | 类型         | 属性 | 取值说明                                       |
-| ------------------ | ----------- | ------------ | ---- | ---------------------------------------------- |
-| 单笔详情外部商户号 | merSingleNo | String       | M    | 商户传入的 管理商户系统的凭证号                |
-| 系统订单号         | applyNo     | String       |      | M	Ottpayhk 生成的订单号                        |
-| 金额               | Amount      | Number(18,2) | M    | 付款金额                                       |
-| 状态               | Status      | Int          | M    | "0":"接受","1", "成功","2","失败","3","处理中" |
-| 说明               | respDesc    | String       | M    | 交易具体说明                                   |
-| 状态码             | respCode    | String       | M    | 交易具体的状态码                               |
-
-
-
-### 5.2.2 FX交易结果通知
-
-**1 功能描述**
-
-|          |                                                                                                                                   |
-| -------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| 交易代码 | TP2002                                                                                                                            |
-| 功能名称 | FX交易结果通知                                                                                                                    |
-| 功能描述 | Fx的交易结果异步通知                                                                                                              |
-| 调用方式 | 通知接口                                                                                                                          |
-| 调用流程 | --                                                                                                                                |
-| 应用场景 | [5.1.3 Fx交易](#_5-1-3-fx交易)发起成功且交易处理完毕后，将根据[5.1.3 Fx交易](#_5-1-3-fx交易)参数内的回调Url进行回调通知最终结果。 |
-
-<aside class="success">
- 本通知将按照间隔时间渐长的方式持续通知24小时.<br>商户应当以http 200返回，若通知持续时间结束仍未正常返回，则不再通知。<br>商户应当自行通过 [5.3.3 换汇历史交易查询](#_5-3-3-换汇历史交易查询)查询接口查询交易结果。
-</aside>
-
-**2 请求地址**
-
-**Url：** [5.1.3 Fx交易](#_5-1-3-fx交易)中的 **callbackUrl**
-
-**Method：** `POST`
-
-> 请求示例:
-
-```json
- {
-    "sellCurrency":"USD",
-    "buyCurrency":"CNY",
-    "rate":"7.0102",
-    "sellAmount":"1000.00",
-    "buyAmount":"7010.20",
-    "quoteId": 7843892398239,
-    "code": "AR0021",
-    "message":"not enough balance",
-    "bizFlow":"983788743"
-}
-```
-**3 请求字段**
-
-| 名称       | Json标签     | 类型       | 属性     | 取值说明     |
-| ---------- | ------------ | ---------- | -------- | ------------ |
-| 卖出币种   | sellCurrency | String(3)  | M        | 卖出币种     |
-| 买入币种   | buyCurrency  | String(3)  | M        | 买入币种     |
-| 汇率       | rate         | String(18) | M        | 汇率报价     |
-| 卖出金额   | sellAmount   | String(20) | M        | 卖出金额     |
-| 买入金额   | buyAmount    | String(20) | M        | 买入金额     |
-| 报价ID     | quoteId      | Long       | M	报价ID |
-| 结果码     | code         | String     | M        | Fx交易结果码 |
-| 结果描述   | message      | String     | M        | 交易结果描述 |
-| 业务流水号 | bizFlow      | String(32) | M        | 业务流水号   |
-
-
-                                                                   
-### 5.2.3 国际汇款交易结果通知
-
-**1 功能描述**
-
-| 交易代码 | TP2003                                                                                                                                                            |
-| -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 功能名称 | 国际汇款交易结果通知                                                                                                                                              |
-| 功能描述 | 国际汇款的交易结果异步通知                                                                                                                                        |
-| 调用方式 | 通知接口                                                                                                                                                          |
-| 调用流程 | --                                                                                                                                                                |
-| 应用场景 | [5.1.5 国际汇款交易](#_5-1-5-国际汇款交易确认)发起成功且交易处理完毕后，将根据[5.1.5 国际汇款交易](#_5-1-5-国际汇款交易确认)参数内的回调Url进行回调通知最终结果。 |
-
-<aside class="success">
- 本通知将按照间隔时间渐长的方式持续通知24小时.<br>商户应当以http 200返回，若通知持续时间结束仍未正常返回，则不再通知。<br>商户应当自行通过 [5.3.3 换汇历史交易查询](#_5-3-3-换汇历史交易查询)查询接口查询交易结果。
-</aside>
-
-**2 请求地址**
-
-**Url：** [5.1.5 国际汇款交易确认](#_5-1-5-国际汇款交易确认)中的 **callbackUrl**
-
-**Method：** `POST`
-
-**3 请求字段**
-
-| 名称         | Json标签       | 类型   | 属性 | 取值说明                     |
-| ------------ | -------------- | ------ | ---- | ---------------------------- |
-| 报价ID       | quoteId        | long   | M    | 报价ID                       |
-| 收款国家     | countryCode    | string | M    | iso 3166-1标准2字代码        |
-| 收款币种     | arriveCurrency | string | M    | 收款方币种，3位标准货币代码  |
-| 扣款币种     | debitCurrency  | string | M    | 扣款币种，3位标准货币代码    |
-| 付款方式     | payType        | string | M    | 可选值：local 或者 swift     |
-| 收款账户类型 | accountType    | string | M    | 暂只支持输入 1（银行账户）   |
-| 付款金额     | arriveAmount   | string | M    | 收款金额                     |
-| 扣款金额     | debitAmount    | String | M    | 扣款金额                     |
-| 汇率         | rate           | String | M    | 汇率                         |
-| 付款状态     | status         | string | M    | 订单状态                     |
-| 结果码       | code           | String | M    | 交易结果码                   |
-| 结果描述     | message        | String | M    | 交易结果描述                 |
-| 交易流水号   | bizFlow        | String | M    | 对应国际汇款交易的唯一流水号 |
-| 商户订单号   | merOrderNo     | String | M    | 商户订单号                   |
-| 关联fx流水号 | fxBizFlow      | String | O    | 关联fx流水号                 |
-                                                                   
-
-###  5.2.4 商户入网结果通知
-
-**1 功能描述**
-
-|          |                                                                                                                                                               |
-| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 交易代码 | TP2004                                                                                                                                                        |
-| 功能名称 | 商户入网结果通知                                                                                                                                              |
-| 功能描述 | 商户入网结果异步通知                                                                                                                                          |
-| 调用方式 | 通知接口                                                                                                                                                      |
-| 调用流程 | --                                                                                                                                                            |
-| 应用场景 | [商户入网信息完善](#_5-1-8-商户入网信息完善)发起成功且交易处理完毕后，将根据[商户入网信息完善](#_5-1-8-商户入网信息完善)参数内的回调Url进行回调通知最终结果。 |
-
-<aside class="success">
-本通知将按照间隔时间渐长的方式持续通知24小时.<br>商户应当以http 200返回，若通知持续时间结束仍未正常返回，则不再通知。
-</aside>
-
-**2 请求地址**
-
-**Url：** [商户入网信息完善](#_5-1-8-商户入网信息完善)中的 **callbackUrl**
-
-**Method：** `POST`
-
-> 请求示例:
-
-```json
-{
-        "bizFlow":"87200408378515100071",
-        "code":"S00000",
-        "message":"SUCCESS",
-        "merchantNo":"005703100153",
-        "merNameEn":"Demo Company Limited"
-}
-```
-**3 请求字段**
-
-| 名称         | Json标签      | 类型        | 属性 | 取值说明                          |
-| ------------ | ------------- | ----------- | ---- | --------------------------------- |
-| 业务流水号   | bizFlow       | string(32)  | M    | 入网申请唯一订单号                |
-| 结果码       | code          | string(6)   | M    | 响应结果代码，S00000 代表入网成功 |
-| 结果描述     | message       | string(255) | M    | 响应描述                          |
-| 商户号       | merchantNo    | string(32)  | M    | 商户号，为商户的唯一标识号码      |
-| 商户英文名称 | merNameEn     | string(255) | M    | 商户英文名称                      |
-| 授权码       | authorizeCode | string(32)  | M    | 授权码                            |
-
-
-### 5.2.5 提现结果通知
-
-**1 功能描述**
-
-|          |                                                                                                                               |
-| -------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| 交易代码 | TP2005                                                                                                                        |
-| 功能名称 | 提现结果通知                                                                                                                  |
-| 功能描述 | 提现结果异步通知                                                                                                              |
-| 调用方式 | 通知接口                                                                                                                      |
-| 调用流程 | --                                                                                                                            |
-| 应用场景 | [提现交易](#_5-1-6-提现接口)发起成功且交易处理完毕后，将根据[提现交易](#_5-1-6-提现接口)参数内的回调Url进行回调通知最终结果。 |
-
-<aside class="success">
-本通知将按照间隔时间渐长的方式持续通知24小时.<br>商户应当以http 200返回，若通知持续时间结束仍未正常返回，则不再通知。 
-</aside>
-
-**2 请求地址**
-
-**Url：** [提现交易](#_5-1-6-提现接口)中的 **callbackUrl**
-
-**Method：** `POST`
-
-> 请求示例:
-
-```json
-{
-    "merOrderNo":"8793478374",
-    "currency":"USD",
-    "amount": 10000.00,
-    "bankAccountNo": "6248348342123342",
-    "bankName": "Citibank",
-    "bankAddress": "Queens Road, New York",
-    "swiftCode":"7643843",
-    "proxyBankName":"",
-    "proxyBankAddress": "",
-    "proxySwiftCode":"",
-    "remark":"xxx公司贸易提现款项",
-    "bizFlow":"3213347378487348734",
-    "status":"SUCCESS",
-    "code":"S00000",
-    "message":"成功"
-}
-```
-
-**3 请求字段**
-
-| 名称             | Json标签         | 类型          | 属性 | 取值说明                   |
-| ---------------- | ---------------- | ------------- | ---- | -------------------------- |
-| 商户订单号       | merOrderNo       | string(32)    | M    | 商户传入本次交易唯一订单号 |
-| 币种             | currency         | string(3)     | M    | 提现币种，3位标准货币代码  |
-| 金额             | amount           | decimal(18,2) | M    | 提现金额                   |
-| 提现账户名称     | bankAccountName  | string(64)    | M    | 提现账户名称               |
-| 银行账号/IBAN    | bankAccountNo    | string(64)    | M    | 提现银行账号或IBAN         |
-| 银行名称         | bankName         | string(64)    | M    | 提现银行名称               |
-| 银行地址         | bankAddress      | string(256)   | M    | 提现银行的地址             |
-| swift code       | swiftCode        | string(32)    | M    | 提现银行的swift code       |
-| 代理行名称       | proxyBankName    | string(64)    | O    | 代理行名称                 |
-| 代理行地址       | proxyBankAddress | string(256)   | O    | 代理行地址                 |
-| 代理行swift code | proxySwiftCode   | string(32)    | O    | 代理行swift code           |
-| 汇款附言         | remark           | string(64)    | O    | 汇款附言                   |
-| 业务流水号       | bizFlow          | string(32)    | M    | OTT生成的唯一流水号        |
-| 交易结果状态     | status           | string(8)     | M    | 交易结果状态               |
-| 交易结果码       | code             | string(8)     | M    | 交易结果码                 |
-| 结果描述         | message          | string(64)    | M    | 交易结果描述               |
-
-
-### 5.2.6 国际汇款付款凭证通知
-
-**1 功能描述**
-
-| 交易代码 | TP2006                                                                                                                                   |
-| -------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| 功能名称 | 国际汇款付款凭证通知                                                                                                                     |
-| 功能描述 | 国际汇款付款凭证通知                                                                                                                     |
-| 调用方式 | 通知接口                                                                                                                                 |
-| 调用流程 | --                                                                                                                                       |
-| 应用场景 | 在[5.1.5 国际汇款交易](#_5-1-5-国际汇款交易确认)完成，且OTTPAYHK获取到银行付款凭证后，将通过此接口，以Base64的形式将付款凭证回传给商户。 |
-
-<aside class="success">
-本通知将按照间隔时间渐长的方式持续通知24小时.<br>商户应当以http 200返回，若通知持续时间结束仍未正常返回，则不再通知。   
-</aside>
-
-**2 请求地址**
-
-**Url：** [5.1.5 国际汇款交易](#_5-1-5-国际汇款交易确认)中的 **callbackUrl**
-
-**Method：** `POST`
-
-**3 请求字段**
-
-| 名称       | Json标签 | 类型   | 属性 | 取值说明                                        |
-| ---------- | -------- | ------ | ---- | ----------------------------------------------- |
-| 交易流水号 | bizFlow  | string | M    | 国际汇款唯一流水号，与tp1005内返回的bizFlow一致 |
-| 文件       | fileBase | string | M    | 经过Base64 encode后的字节流                     |
-
-### 5.2.7 贸易收款到账通知
-
-**1 功能描述**
-
-| 交易代码 | TP2007                                                                                                                                   |
-| -------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| 功能名称 | 贸易收款到账通知                                                                                                                     |
-| 功能描述 | 贸易收款到账通知                                                                                                                     |
-| 调用方式 | 通知接口                                                                                                                                 |
-| 调用流程 | --                                                                                                                                       |
-| 应用场景 | 在商户的VA子账户收款收到后，OTTPAYHK会向商户发送贸易收款资金到账的通知 |
-
-<aside class="success">
-本通知将按照间隔时间渐长的方式持续通知24小时.<br>商户应当以http 200返回，若通知持续时间结束仍未正常返回，则不再通知。   
-</aside>
-
-**2 请求地址**
-
-**Url：** [5.1.12 回调地址设置](#_5-1-12-回调地址设置)中的 **callbackUrl**
-
-**Method：** `POST`
-
-> 请求示例:
-
-```json
-{
-    "flowNo":"624348793478374",
-    "receiveAmount": 10000.00,
-    "receiveCurrency": "USD",
-    "vaAccount": "789432134",
-    "senderName": "ERUIEG Limited",
-    "senderAccount": "84956984598234923",
-    "receiveTime":"1624358032"
-}
-```
-**3 请求字段**
-
-| 名称       | Json标签 | 类型   | 属性 | 取值说明                                        |
-| ---------- | -------- | ------ | ---- | ----------------------------------------------- |
-| 到账流水号 | flowNo  | string(32) | M    | 贸易收款到账唯一流水号     |
-| 到账金额       | receiveAmount | decimal(18,2) | M    | VA到账金额                    |
-| 到账币种       | receiveCurrency | string(3) | M    | VA到账币种                     |
-| 入账VA账户号       | vaAccount  | string(16) | M    | 入账的VA账户号        |
-| 付款方名称       | senderName | string(64) | O    | 付款方名称                    |
-| 付款方账号       | senderAccount | string(32) | O    | 付款方账号                   |
-| 入账时间       | receiveTime | string(10) | M    | 入账时间，10位unix时间戳                |
-
-
-### 5.2.8 贸易订单申请结果通知
+### 5.3.6 贸易订单申请结果通知
 
 **1 功能描述**
 
@@ -1807,12 +1029,12 @@ respCode为S00000时：
 | 应用场景   | [5.1.13 贸易订单申请]发起成功，根据回调Url进行回调通知最终结果。 |
 
 <aside class="success">
-本通知将按照间隔时间渐长的方式持续通知24小时.<br>商户应当以http 200返回，若通知持续时间结束仍未正常返回，则不再通知。<br>商户应当自行通过 [5.3.18 ]查询接口查询交易结果。
+本通知将按照间隔时间渐长的方式持续通知24小时.<br>商户应当以http 200返回，若通知持续时间结束仍未正常返回，则不再通知。<br>商户应当自行通过 [5.3.4 贸易收款VA入账查询接口]查询交易结果。
 </aside>
 
 **2 请求地址**
 
-**Url：** [5.1.13 贸易订单申请]中的 **callbackUrl**
+**Url：** [5.3.5 贸易订单申请]中的 **callbackUrl**
 
 **Method：** `POST`
 
@@ -1837,7 +1059,187 @@ respCode为S00000时：
  
 
 
-### 5.2.9 收款流水和贸易订单关联结果通知
+
+### 5.3.7 贸易订单申请信息查询
+
+**1 功能描述**
+
+|          |                                                    |
+| -------- | -------------------------------------------------- |
+| 交易代码 | TP3013                                             |
+| 功能名称 | 贸易合同结果信息查询                               |
+| 功能描述 | 提供商户查询贸易合同创建状态                       |
+| 调用方式 | 实时接口                                           |
+| 调用流程 | --                                                 |
+| 应用场景 | 商户需要查询订单合同的状态                         |
+
+**2 请求地址**
+
+
+**Url：** `https://{baseUrl}/api/tp3013`
+
+**Method：** `POST`
+
+> 请求示例:
+
+```json
+{
+       "startTime":"168419019000",
+       "endTime":"168419019000",
+       "contractNo":"62291060316483300005",
+       "merOrderNo":"23455560316483300005"
+}
+```                                             
+
+**3 请求字段**
+
+
+| 名称         | Json标签   | 类型   | 属性 | 取值说明                             |
+| ------------ | ---------- | ------ | ---- | ------------------------------------ |
+| 查询起始时间 | startTime  | Long(13)   | O    | Unix13位时间戳，查询开始时间，闭区间 |
+| 查询结束时间 | endTime    | Long(13)   | O    | Unxi13位时间戳，查询结束时间，闭区间 |
+| 贸易合同号   | contractNo | string(32) | O    | [5.1.13 贸易订单申请]返回贸易合同号    |
+| 订单号       | merOrderNo | string(32) | O    | 商户提供的订单号        |
+
+<aside class="success">
+startTime与endTime，间隔不能超过24小时。根据startTime和endTime的查询，最多显示100条。若startTime和endTime未填写，则contractNo为必填。
+</aside>       
+
+> 响应示例:
+
+```json
+{
+   "contractList":[
+                   {
+                       "contractNo":"2120319391838111181",
+                       "status":"SUCC",
+                       "message":"成功",
+                       "merOrderNo":"23134141421414",
+                       "orderNo":"2021062819217",
+                       "currency":"CNY",
+                       "amount":"7010.20",
+                       "tradeType": "00",
+                       "buyerName": "TX",
+                       "buyerArea":"中国",
+                       "goodsList":[
+                         {
+                             "orderName": "apple",
+                             "orderNum":"3"
+                         }
+                       ],
+                       "transcationDate":"2021-06-01",
+                       "transcationCert":["/src/iiii/a.png","/src/iiii/b.pdf","/src/iiii/c.png"],
+                       "logStatus":"0",
+                       "logNo":"983222231788743",
+                       "logCompany":"国际贸易物流公司",
+                       "annexUrl":["/src/iiii/a.png","/src/iiii/b.pdf","/src/iiii/c.png"],
+                        "serviceTrade": {
+                            "serviceCondition": "0",
+                            "proveUrl": [],
+                            "conditionDate": "2021-09-02"
+                        }
+
+                   }
+                 ]
+}
+```
+
+**4 响应字段**
+
+
+| 名称        | Json标签        | 类型                 | 属性 | 取值说明                                                          |
+| ----------- | --------------- | -------------------- | ---- | ----------------------------------------------------------------- |
+| 贸易订单    | contractList    | `List<contractList>` | M    | 贸易订单集合    |
+
+
+**contractList**
+
+| 名称           | Json标签        | 类型              | 属性 | 取值说明                                |
+| -------------- | --------------- | ----------------- | ---- | ------------------------------------|
+| 商户唯一订单号 | merOrderNo      | string(32)        | M    | 商户唯一订单号                             |
+| 订单币种       | currency        | string(3)         | M    | 订单币种                                |
+| 订单总金额     | amount          | Decimal(18,2)     | M    | 订单总金额                               |
+| 贸易类型       | tradeType       | string(2)         | M    | 贸易类型 默认：00-货物贸易                     |
+| 采购方名称     | buyerName       | string(64)        | M    | 采购方名称                               |
+| 采购方所属地区 | buyerArea       | string(64)        | M    | 采购方所属地区                             |
+| 物品信息       | goodsList       | `List<goodsList>` | M    | 物品信息 物品数不超过10个                      |
+| 交易日期       | transcationDate | string(10)        | M    | 交易日期 格式：yyyy-MM-dd                       |
+| 交易凭证       | transcationCert | `Array`           | M    | 多个凭证文件地址数组 (文件大小不超过20M)                  |
+| 物流状态       | logStatus       | string(1)         | O    | 0-未发货 1-已发货                         |
+| 物流单号       | logNo           | string(64)        | O    | 物流单号                                |
+| 物流公司名称   | logCompany      | string(64)        | O    | 物流公司名称 |
+| 物流附件       | annexUrl        | `Array`           | O    | 物流附件 (文件大小不超过20M) |
+| 服务贸易信息   | serviceTrade    | `Object`          | O    | 服务贸易信息 |
+| 贸易订单号     | contractNo      | string(32)        | M    | 贸易订单号（唯一）                           |
+| 贸易订单状态   | status          | string(8)         | M    | 贸易订单状态 ACCEPT-处理中 SUCC-成功 FAIL-失败|
+| 查询结果描述   | message         | string(128)       | M    | 查询结果描述|
+
+**serviceTrade**
+
+| 名称           | Json标签        | 类型            | 属性 | 取值说明                                                          |
+| -------------- | --------------- | --------------- | ---- | ----------------------------------------------------------------- |
+| 服务贸易状态   | serviceCondition| string(1)       | O    | 服务贸易完成状态 0-未完成 1-已完成                                          |
+| 证明文件       | proveUrl        | `Array`         | O    | 证明文件路径 serviceCondition 为0时必填                                       |
+| 预计完成时间   | conditionDate   | string(10)      | O    | serviceCondition 为1时必填 格式"yyyy-MM-dd"                                     |
+
+
+
+### 5.3.8 收款流水和贸易订单关联
+
+**1 功能描述**
+
+|          |                                              |
+| -------- | -------------------------------------------- |
+| 交易代码 | TP1013                                       |
+| 功能名称 | 收款流水和贸易订单关联                            |
+| 功能描述 | 收款流水和贸易订单关联                   |
+| 调用方式 | 实时接口                                     |
+| 调用流程 | --                                           |
+| 应用场景 | 商户的贸易收款订单被审核通过后，将收款流水和贸易订单做关联 |
+
+**2 请求地址**
+
+**Url：** `https://{baseUrl}/api/tp1013`
+
+**Method：** `POST`
+
+> 请求示例:
+
+```json
+{
+        "contactNo":"62291060316483300005",
+        "flowNo":"63291062211570000002",
+        "callbackUrl":"https://xxxxx.xxxx.com/callback/inAcctNoticeUrl"
+}
+```          
+**3 请求字段**
+
+| 名称                     | Json标签              | 类型        | 属性 | 取值说明                                                                     |
+| ------------------------ | --------------------- | ----------- | ---- | ---------------------------------------------------------------------------- |
+| 贸易订单编码              | contactNo               | string(32)          | M    | 贸易订单编码，tp2008返回                                                                     |
+| 收款流水编码              | flowNo               | string(32)          | M    | 收款流水编码，tp3015返回                                         |
+| 入账通知地址              | callbackUrl            | string(255) | M    | 贸易收款入账成功后的通知地址 |
+
+                                                       
+
+> 返回示例:
+
+```json
+{
+       "bizFlow":"652362763878"
+}
+```
+
+**4 响应字段**
+
+
+| 名称       | Json标签 | 类型        | 属性 | 取值说明                                                          |
+| ---------- | -------- | ----------- | ---- | ----------------------------------------------------------------- |
+| 业务流水号 | bizFlow  | string(32)  | M    | OTT侧唯一业务订单号                                                |
+
+
+
+### 5.3.9 收款流水和贸易订单关联结果通知
 
 **1 功能描述**
 
@@ -1847,15 +1249,15 @@ respCode为S00000时：
 | 功能描述   | 收款流水和贸易订单关联后，给商户发的通知                                                                                                                                        |
 | 调用方式   | 通知接口                                                                                                                                                          |
 | 调用流程   | --                                                                                                                                                                |
-| 应用场景   | [5.1.11 收款流水和贸易订单关联]发起成功且交易处理完毕后，将根据[5.1.11 收款流水和贸易订单关联]参数内的回调Url进行回调通知最终结果。 |
+| 应用场景   | [5.3.8 收款流水和贸易订单关联]发起成功且交易处理完毕后，将根据[5.3.8 收款流水和贸易订单关联]参数内的回调Url进行回调通知最终结果。 |
 
 <aside class="success">
-本通知将按照间隔时间渐长的方式持续通知24小时.<br>商户应当以http 200返回，若通知持续时间结束仍未正常返回，则不再通知。<br>商户应当自行通过 [5.3.17 收款流水和贸易订单关联查询接口]查询接口查询交易结果。
+本通知将按照间隔时间渐长的方式持续通知24小时.<br>商户应当以http 200返回，若通知持续时间结束仍未正常返回，则不再通知。<br>商户应当自行通过 [5.3.10 收款流水和贸易订单关联查询接口]查询接口查询交易结果。
 </aside>
 
 **2 请求地址**
 
-**Url：** [5.1.11 收款流水和贸易订单关联]中的 **callbackUrl**
+**Url：** [5.3.8 收款流水和贸易订单关联]中的 **callbackUrl**
 
 **Method：** `POST`
 
@@ -1871,158 +1273,223 @@ respCode为S00000时：
 | 手续费金额    | feeAmt           | decimal(18,2) | M    | OTT PAY收取手续费                        |
 | 入账时间      | approveTime        | bigInt(13) | M    | 入账时间戳(毫秒) |
 | 状态   | status    | string(2) | M    | '02-通过 03-驳回' |
-| 结果描述         | message          | string(64)    | M    | 交易结果描述               |
-
-### 5.2.10 退款通知
-
-**1 功能描述**
-
-| 交易代码    | TP2010                                                                                                                                                            |
-| -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 功能名称  | 退款通知                                                                                                                                              |
-| 功能描述   | 国际汇款或人民币入境失败后，将金额退回商户账户                                                                                                                                        |
-| 调用方式   | 通知接口                                                                                                                                                          |
-| 调用流程   | --                                                                                                                                                                |
-| 应用场景   | 国际汇款或人民币入境失败后，将金额退回商户账户且发送退款通知。商户接受退款通知的url通过接口：[5.1.12 回调地址设置]进行设置，tradeCode设置为tp2010。 |
-
-<aside class="success">
- 本通知将按照间隔时间渐长的方式持续通知24小时.<br>商户应当以http 200返回，若通知持续时间结束仍未正常返回，则不再通知。
-</aside>
-
-**2 请求地址**
+| 结果描述         | message          | string(64)    | M    | 交易结果描述     
 
 
-**Url：** [5.1.12 回调地址设置](#_5-1-12-回调地址设置)中的 **callbackUrl**
 
-**Method：** `POST`
-
-**3 请求字段**
-
-
-| 名称         | Json标签       | 类型   | 属性 | 取值说明                     |
-| ------------ | -------------- | ------ | ---- | ---------------------------- |
-| 业务类型   | bizType               | string(2)          | M    | 01-人民币 02-国际汇款                                                                   |
-| 系统订单号   | applyNo             | string(32)          | M    | 原支付的Ottpayhk订单号 |
-| 单笔订单号   | merSingleNo         | string(32)          | M    | 原支付的商户订单号 |
-| 原扣款币种     | tradeurty        | string | M    | 原支付交易商户扣款币种，3位标准货币代码  |
-| 原扣款金额      | tradeAmt   | decimal(18,2) | M    | 原支付交易商户扣款金额              |
-| 原支付时间      | tradeTime        | bigInt(13) | M    | 入账时间戳(毫秒) |
-| 退款币种    | refundCurty    | String | M    | 退款币种，3位标准货币代码                    |
-| 退款金额    | refundAmt           | decimal(18,2) | M    | 退款金额                        |
-| 备注       | remark          | string(255)    | M    | 备注               |
-     
-## 5.3 查询接口
-
-### 5.3.1 人民币付款业务查询
+### 5.3.10 收款流水和贸易订单关联查询
 
 **1 功能描述**
 
-| 交易代码 | TP3001                                     |
-| -------- | ------------------------------------------ |
-| 功能名称 | 人民币付款业务查询                         |
-| 功能描述 | 商户自行查询人民币付款最终结果             |
-| 调用方式 | 实时接口                                   |
-| 调用流程 | 商户发送人民币付款请求后，查询对应订单结果 |
-| 应用场景 | 商户需要知晓人民币付款最终结果             |
-
-**2 请求地址**
-
-**Url：** `https://{baseUrl}/api/tp3001`
-
-**Method：** `POST`
-
-**3 请求字段**
-
-
-| 名称       | Json标签   | 类型       | 属性 | 取值说明                                                                                                             |
-| ---------- | ---------- | ---------- | ---- | -------------------------------------------------------------------------------------------------------------------- |
-| 订单号     | merOrderNo | String(32) | O    | 付款发起时的订单号                                                                                                   |
-| 业务流水号 | bizFlowNo  | String(32) | O    | Ottpayhk 生成的唯一业务流水号， 与订单号一一对应<br>注：订单号与业务流水号仅需填写一个，若同时填写，以业务流水号为准 |
-                                                                   
-
-**4 响应字段**
-
-
-
-| 名称         | Json标签        | 类型          | 属性 | 取值说明                 |
-| ------------ | --------------- | ------------- | ---- | ------------------------ |
-| 订单号       | merOrderNo      | String(32)    | M    | 付款请求发起时的订单号   |
-| 业务流水号   | bizFlowNo       | String(32)    | M    | 付款请求返回的业务流水号 |
-| 结果代码     | respCode        | String(6)     | M    | 付款交易结果代码         |
-| 结果描述     | respDesc        | String(50)    | M    | 付款交易结果详情描述     |
-| 收款人列表   | payeeList       | `List<payee>` | M    | 收款人列表               |
-| 手续费币种   | feeCurrency     | String(3)     | O    | 所收取的手续费币种       |
-| 手续费币种   | feeAmount       | Decimal       | O    | 所收取的手续费金额       |
-| 实际付款金额 | actualPayAmount | Decimal       | O    | 实际付款金额             |
-
-**payee 的字段**
-
-| 名称                           | Json标签              | 类型       | 属性 | 取值说明                                                                                                                |
-| ------------------------------ | --------------------- | ---------- | ---- | ----------------------------------------------------------------------------------------------------------------------- |
-| 单笔订单号                     | merSingleNo           | String(32) | M    | 单个付款记录对应的订单号                                                                                                |
-| 收款方户名                     | payeeName             | String(64) | M    | 收款方银行账户户名                                                                                                      |
-| 收款方账号                     | payeeAccountNo        | String(32) | M    | 收款方银行账号                                                                                                          |
-| 收款方账户类型                 | acctType              | String(1)  | M    | 0 : 对私账户 1：对公账户                                                                                                |
-| 身份证号/<br>统一 社会信用代码 | identity              | String(32) | M    | 若收款方账户类型为 **0**，则填写**身份证号**，<br>为 **1** 则填写**统一社会信用代码**                                   |
-| 金额                           | amount                | String(18) | M    | 付款金额，单位为分，例：若付款 **200.00** 元，应填写 **20000**                                                          |
-| 联行号                         | cNAPSCode             | String(64) | M    | 联行号                                                                                                                  |
-| 手机号                     | mobile              | String(13) | M    | 手机号                                                                                                          |
-| 开户行名称                     | bankName              | String(32) | M    | 收款方银行名称                                                                                                          |
-| 开户行省份                     | bankProvince          | String(32) | M    | 收款方银行所在省份                                                                                                      |
-| 开户行市名                     | bankCity              | String(32) | M    | 收款方银行所在市名                                                                                                      |
-| 支行名称                       | bankBranchName        | String(32) | M    | 收款方银行支行名称                                                                                                      |
-| 交易编码                       | tradeCodeType         | String(6)  | M    | 对应交易属性类型，参见[参数详见字段说明](#_6-1-2-tradecodetype-交易编码)                                                |
-| 单笔结果代码                   | respCode              | String(6)  | M    | 单笔交易对应的结果代码                                                                                                  |
-| 单笔结果描述                   | respDesc              | String(50) | M    | 单笔交易对应的结果描述                                                                                                  |
-| 付款方式                       | payMethod             | String     | F    | **tradeCodeType**为 *TRADE*，并且 **paymentType** 为 *B2B* 时不能为空<br>[参数详见字段说明](#_6-1-3-paymethod-支付方式) |
-| 报关币种                       | declarationCurrency   | String     | F    | **payMethod** 值为 *cash_on_delivery* 不能为空                                                                          |
-| 预付比例                       | advanceProportion     | Float      | F    | **payMethod** 值为 advanc<br> 0 < advanceProportion < 1  小数点后最多两位                                               |
-| 结算账期                       | settlementDate        | String     | F    | **payMethod** 值为 advance <br>结算账期不能为空   单位天                                                                |
-| 付款方名称                     | senderName            | String     | M    | 真实付款方名称                                                                                                          |
-| 付款方公司注册号               | senderIncorporationNo | String     | M    | 付款方公司注册号                                                                                                        |
-| 付款方注册地                   | registrationRegion    | String     | M    | 付款人住的区域 swift 国家地区                                                                                           |
-| 付款方银行名称                 | senderBankName        | String     | M    | 付款方银行名称                                                                                                          |
-| 资金源                         | sourceFounds          | String     | F    | 选填                                                                                                                    |
-| 付款方银行账户                 | senderBankAccountNo   | String     | F    | 付款方银行账户 选填                                                                                                     |
-
-### 5.3.2 查询支持换汇币种对
-
-**1 功能描述**
-
-| 交易代码 | TP3002                                             |
+|          |                                                    |
 | -------- | -------------------------------------------------- |
-| 功能名称 | 查询换汇支持币种对                                 |
-| 功能描述 | 查询换汇支持币种对，可在当前支持的币种内进行FX交易 |
+| 交易代码 | TP3014                                             |
+| 功能名称 | 收款流水和贸易订单关联查询接口                                |
+| 功能描述 | 提交收款流水和贸易订单关联申请后，通过此接口查询贸易收款是否入账                                   |
 | 调用方式 | 实时接口                                           |
 | 调用流程 | --                                                 |
-| 应用场景 | 需要查询目前已支持的FX币种                         |
+| 应用场景 | 提交收款流水和贸易订单关联申请后（TP1013），通过此接口查询贸易收款是否入账 |
 
 **2 请求地址**
 
 
-**Url：** `https://{baseUrl}/api/tp3002`
+**Url：** `https://{baseUrl}/api/tp3014`
 
 **Method：** `POST`
 
+> 请求示例:
+
+```json
+{
+       "contactNo":"62291060316483300005",
+       "flowNo":"63291062211570000002"
+}
+```                                             
 **3 请求字段**
 
 
-无
-                                                                   
+| 名称         | Json标签   | 类型   | 属性 | 取值说明                             |
+| ------------ | ---------- | ------ | ---- | ------------------------------------ |
+| 查询起始时间 | startTime  | Long(13)   | O    | Unix13位时间戳，查询开始时间，闭区间 |
+| 查询结束时间 | endTime    | Long(13)   | O    | Unxi13位时间戳，查询结束时间，闭区间 |
+| 贸易订单编码 | contactNo  | string(32)          | O    | 贸易订单编码，tp2008返回                                                                     |
+| 收款流水编码 | flowNo   | string(32)          | O    | 收款流水编码，tp3015返回                                 |
+| 业务流水号 | bizFlow  | string(32)  | O    | OTT侧唯一业务订单号，tp1013返回                                                |
+
+<aside class="success">
+若startTime与endTime，间隔不能超过24小时。根据startTime和endTime的查询，最多显示100条。
+</aside>       
+
 
 **4 响应字段**
 
 
- 接口返回对象为: **`List<CurrencyPair>`**
+| 名称     | Json标签     | 类型       | 属性 | 取值说明 |
+| -------- | ------------ | ---------- | ---- | -------- |
+| 信息集合 | relateList     | `List<ConfirmRelatetionReq>` | M    | --       |
 
-**CurrencyPair字段：**
+**ConfirmRelatetionReq 字段：**
 
-| 名称     | Json标签     | 类型      | 属性 | 取值说明 |
-| -------- | ------------ | --------- | ---- | -------- |
-| 卖出币种 | sellCurrency | String(3) | M    | 卖出币种 |
-| 买入币种 | buyCurrency  | String(3) | M    | 买入币种 |
+| 名称     | Json标签     | 类型       | 属性 | 取值说明 |
+| -------- | ------------ | ---------- | ---- | -------- |
+| 贸易订单编码   | contactNo               | string(32)          | M    | 贸易订单编码                                                                   |
+| 收款流水编码   | flowNo               | string(32)          | M    | 收款流水编码  |
+| 入账币种      | currency        | string | M    | 入账币种，3位标准货币代码  |
+| 入账金额      | amount   | decimal(18,2) | M    | 收款金额                     |
+| 手续费币种    | feeCurty    | String | M    | 手续费币种，3位标准货币代码                    |
+| 手续费金额    | feeAmt           | decimal(18,2) | O    | OTT PAY收取手续费                        |
+| 入账时间      | approveTime        | bigInt(13) | M    | 入账时间戳(毫秒) |
+| 状态   | status    | string(2) | M    | '01-审核中 02-通过 03-驳回' |
+| 结果描述         | message          | string(64)    | M    | 交易结果描述               |
 
-### 5.3.3 换汇历史交易查询
+
+## 5.4 换汇
+
+### 5.4.1 牌价查询
+
+**1 功能描述**
+
+|          |                            |
+| -------- | -------------------------- |
+| 交易代码 | TP1002                     |
+| 功能名称 | 牌价查询                   |
+| 功能描述 | 查询某币种的FX牌价         |
+| 调用方式 | 实时接口                   |
+| 调用流程 | --                         |
+| 应用场景 | 在进行FX交易前，需要先询价 |
+
+**2 请求地址**
+
+**Url：** `https://{baseUrl}/api/tp1002`
+
+**Method：** `POST`
+
+> 请求示例:
+
+ ```json
+{
+    "merOrderNo":"1734276289293",
+    "sellCurrency":"USD",
+    "buyCurrency":"CNY",
+    "lockDirection":"SELL",
+    "amount":"1000.00",
+    "lockType":"T0"
+}
+```                       
+
+**3 请求字段**
+
+| 名称       | Json标签      | 类型       | 属性 | 取值说明                                                                 |
+| ---------- | ------------- | ---------- | ---- | ------------------------------------------------------------------------ |
+| 商户订单号 | merOrderNo    | String(32) | M    | 商户自定义的唯一订单号                                                   |
+| 卖出币种   | sellCurrency  | String(3)  | O    | 卖出币种                                                                 |
+| 买入币种   | buyCurrency   | String(3)  | M    | 买入币种                                                                 |
+| 锁定方向   | lockDirection | String(4)  | M    | 锁定卖出或买入币种;传SELL则锁定卖出币种的金额，传BUY则锁定买入币种的金额 |
+| 锁定金额   | amount        | String(20) | M    | 指定的FX金额                                                             |
+| 锁汇类型   | lockType      | String(2)  | O    | 选填字段：目前支持可选T0、T1、T2                                             |
+
+                                           
+> 返回示例:
+
+```json
+{
+    "sellCurrency":"USD",
+    "buyCurrency":"CNY",
+    "rate":"7.0102",
+    "sellAmount":"1000.00",
+    "buyAmount":"7010.20",
+    "quoteId": 7843892398239,
+    "expireTime": 1576560599598,
+    "merOrderNo":"32894398349",
+    "lockType":"T0"
+}
+```
+**4 响应字段**
+
+
+| 名称       | Json标签     | 类型       | 属性 | 取值说明                                                       |
+| ---------- | ------------ | ---------- | ---- | -------------------------------------------------------------- |
+| 卖出币种   | sellCurrency | String(3)  | M    | 卖出币种                                                       |
+| 买入币种   | buyCurrency  | String(3)  | M    | 买入币种                                                       |
+| 汇率       | rate         | String(18) | M    | 汇率报价                                                       |
+| 卖出金额   | sellAmount   | String(18) | M    | 卖出金额                                                       |
+| 买入金额   | buyAmount    | String(20) | M    | 买入金额                                                       |
+| 报价ID     | quoteId      | Long       | M    | 报价ID                                                         |
+| 报价有效期 | expireTime   | Long       | M    | unix时间戳，此次询价的有效时间。如若过了有效时间，此次询价作废 |
+| 商户订单号 | merOrderNo   | String(32) | M    | 商户传入的订单号                                               |
+| 锁汇类型   | lockType     | String(2)  | O    | 锁汇类型 T0、T1、T2                                                |
+
+
+### 5.4.2 FX交易
+
+**1 功能描述**
+
+|          |                                                             |
+| -------- | ----------------------------------------------------------- |
+| 交易代码 | TP1003                                                      |
+| 功能名称 | FX交易                                                      |
+| 功能描述 | 根据询价后的牌价，发起FX交易                                |
+| 调用方式 | 实时接口                                                    |
+| 调用流程 | 在发起牌价查询接口后，根据所得到的quoteId，发起相应的FX交易 |
+| 应用场景 | --                                                          |
+
+**2 请求地址**
+
+**Url：** `https://{baseUrl}/api/tp1003`
+
+**Method：** `POST`
+
+> 请求示例:
+
+```json
+{
+    "quoteId": 7843892398239,
+    "callbackUrl":"https://xxxx.xxxx.xxxx/xxxx/xxxx"
+}
+
+```
+**3 请求字段**
+
+| 名称    | Json标签    | 类型        | 属性 | 取值说明    |
+| ------- | ----------- | ----------- | ---- | ----------- |
+| 报价ID  | quoteId     | Long        | M    | 报价ID      |
+| 回调url | callbackUrl | String(256) | M    | 回调通知Url |
+
+                                                                   
+> 返回示例:
+
+```json
+{
+    "sellCurrency":"USD",
+    "buyCurrency":"CNY",
+    "rate":"7.0102",
+    "sellAmount":"1000.00",
+    "buyAmount":"7010.20",
+    "quoteId": 7843892398239,
+    "expireTime": 1576560599598,
+    "merOrderNo":"32894398349",
+    "lockType":"T0"
+}
+```
+**4 响应字段**
+
+
+| 名称       | Json标签     | 类型       | 属性 | 取值说明               |
+| ---------- | ------------ | ---------- | ---- | ---------------------- |
+| 卖出币种   | sellCurrency | String(3)  | M    | 卖出币种               |
+| 买入币种   | buyCurrency  | String(3)  | M    | 买入币种               |
+| 汇率       | rate         | String(18) | M    | 汇率报价               |
+| 卖出金额   | sellAmount   | String(18) | M    | 卖出金额               |
+| 买入金额   | buyAmount    | String(20) | M    | 买入金额               |
+| 报价ID     | quoteId      | Long       | M    | 报价ID                 |
+| 结果码     | code         | String     | M    | Fx交易结果码           |
+| 结果描述   | message      | String     | M    | 交易结果描述           |
+| 交易流水号 | bizFlow      | String(32) | M    | 对应Fx交易的唯一流水号 |
+| 锁汇类型   | lockType     | String(2)  | O    | 锁汇类型 T0、T1        |
+
+
+
+### 5.4.3 换汇历史交易查询
 
 **1 功能描述**
 
@@ -2101,66 +1568,346 @@ respCode为S00000时：
 | 业务流水号 | bizFlow      | String(32) | M    | 对应唯一业务流水号 |
 
 
-### 5.3.4 账户余额查询
+
+### 5.4.4 FX交易结果通知
 
 **1 功能描述**
 
-| 交易代码 | TP3004           |
-| -------- | ---------------- |
-| 功能名称 | 账户余额查询     |
-| 功能描述 | 当前账户余额查询 |
-| 调用方式 | 实时接口         |
-| 调用流程 | --               |
-| 应用场景 | 当前账户余额查询 |
+|          |                                                                                                                                   |
+| -------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| 交易代码 | TP2002                                                                                                                            |
+| 功能名称 | FX交易结果通知                                                                                                                    |
+| 功能描述 | Fx的交易结果异步通知                                                                                                              |
+| 调用方式 | 通知接口                                                                                                                          |
+| 调用流程 | --                                                                                                                                |
+| 应用场景 | [5.4.2 Fx交易](#5-4-2-fx)发起成功且交易处理完毕后，将根据[5.4.2 Fx交易](#5-4-2-fx)参数内的回调Url进行回调通知最终结果。 |
+
+<aside class="success">
+ 本通知将按照间隔时间渐长的方式持续通知24小时.<br>商户应当以http 200返回，若通知持续时间结束仍未正常返回，则不再通知。<br>商户应当自行通过 [5.4.3 换汇历史交易查询](#5-4-3)查询接口查询交易结果。
+</aside>
+
+**2 请求地址**
+
+**Url：** [5.4.2 Fx交易](#5-4-2-fx)中的 **callbackUrl**
+
+**Method：** `POST`
+
+> 请求示例:
+
+```json
+ {
+    "sellCurrency":"USD",
+    "buyCurrency":"CNY",
+    "rate":"7.0102",
+    "sellAmount":"1000.00",
+    "buyAmount":"7010.20",
+    "quoteId": 7843892398239,
+    "code": "AR0021",
+    "message":"not enough balance",
+    "bizFlow":"983788743"
+}
+```
+**3 请求字段**
+
+| 名称       | Json标签     | 类型       | 属性     | 取值说明     |
+| ---------- | ------------ | ---------- | -------- | ------------ |
+| 卖出币种   | sellCurrency | String(3)  | M        | 卖出币种     |
+| 买入币种   | buyCurrency  | String(3)  | M        | 买入币种     |
+| 汇率       | rate         | String(18) | M        | 汇率报价     |
+| 卖出金额   | sellAmount   | String(20) | M        | 卖出金额     |
+| 买入金额   | buyAmount    | String(20) | M        | 买入金额     |
+| 报价ID     | quoteId      | Long       | M	报价ID |
+| 结果码     | code         | String     | M        | Fx交易结果码 |
+| 结果描述   | message      | String     | M        | 交易结果描述 |
+| 业务流水号 | bizFlow      | String(32) | M        | 业务流水号   |
+
+
+
+### 5.4.5 查询支持换汇币种对
+
+**1 功能描述**
+
+| 交易代码 | TP3002                                             |
+| -------- | -------------------------------------------------- |
+| 功能名称 | 查询换汇支持币种对                                 |
+| 功能描述 | 查询换汇支持币种对，可在当前支持的币种内进行FX交易 |
+| 调用方式 | 实时接口                                           |
+| 调用流程 | --                                                 |
+| 应用场景 | 需要查询目前已支持的FX币种                         |
 
 **2 请求地址**
 
 
-**Url：** `https://{baseUrl}/api/tp3004`
+**Url：** `https://{baseUrl}/api/tp3002`
 
 **Method：** `POST`
 
 **3 请求字段**
 
 
-| 名称 | Json标签 | 类型      | 属性 | 取值说明                         |
-| ---- | -------- | --------- | ---- | -------------------------------- |
-| 币种 | currency | String(3) | O    | 币种，若不传则为查询所有币种账户 |
-
+无
                                                                    
-> 返回示例:
 
-```json
-[
-    {
-        "currency": "USD",
-        "balance": "2000.00",
-        "status":"on"
-    },
-    {
-        "currency": "CNY",
-        "balance": "8231.22",
-        "status":"off"
-    }
-]
-
-```
 **4 响应字段**
 
 
- 接口返回对象为: **`List<CurrencyBalance>`**
+ 接口返回对象为: **`List<CurrencyPair>`**
 
-**CurrencyBalance 字段：**
+**CurrencyPair字段：**
 
-| 名称     | Json标签 | 类型      | 属性 | 取值说明                        |
-| -------- | -------- | --------- | ---- | ------------------------------- |
-| 币种     | currency | String(3) | M    | 币种                            |
-| 余额     | balance  | String(3) | M    | 账户余额                        |
-| 账户状态 | status   | String(3) | M    | 账户状态: on 为启用， off为禁用 |
-
+| 名称     | Json标签     | 类型      | 属性 | 取值说明 |
+| -------- | ------------ | --------- | ---- | -------- |
+| 卖出币种 | sellCurrency | String(3) | M    | 卖出币种 |
+| 买入币种 | buyCurrency  | String(3) | M    | 买入币种 |
 
 
-### 5.3.5 查询总行
+
+## 5.5 人民币付款
+
+### 5.5.1 人民币付款
+
+**1 功能描述**
+
+|          |                                                              |
+| -------- | ------------------------------------------------------------ |
+| 交易代码 | TP1001                                                       |
+| 功能名称 | 人民币付款                                                   |
+| 功能描述 | 发起人民币付款请求，将收款人信息发送至Ottpayhk               |
+| 调用方式 | 实时接口                                                     |
+| 调用流程 | 先通过sftp将还原材料提交至Ottpayhk，再调用此接口发送付款信息 |
+| 应用场景 | 需要将人民币付给国内持卡人                                   |
+
+ **2 请求地址**
+
+ **Url：** `https://{baseUrl}/api/tp1001`
+  
+ **Method：** `POST`
+
+> 请求示例:
+
+```json
+{
+    "merOrderNo":"KL123124124124124124124124",
+    "fileUrlPath":"ftp://shahdsjgd.shaddja/jjafs?",
+    "paymentType":"00",
+    "callbackUr":"https://exmepdsa.com/sdgsge",
+    "payOrderList":[
+        {
+            "merSingleNo":"SDF2551535",
+            "payeeAccountNo":"EE2563461613461 ",
+            "identity":"321461466413461436",
+            "amount":1000000,
+            "cNAPSCode":"dserqt",
+            "tradeCodeType":"qe",
+            "payMethod":"qerq",
+            "declarationCurrency":"wtwerywyw",
+            "advanceProportion":"ojfosjgjaoa",
+            "settlementDate":"kadagodgj",
+            "senderName":"Eege Esgg",
+            "senderIncorporationNo":"wqthdfqr",
+            "registrationRegion":"rywrsdgah sgsrg",
+            "senderBankName":"ghtwjsht",
+            "sourceFounds":"ergwr",
+            "senderBankAccountNo":"fdrehwhwg",  
+        }
+    ],
+}
+```
+**3 请求字段**  
+
+| 名称         | Json标签     | 类型                    | 属性 | 取值说明                                                                                      |
+| ------------ | ------------ | ----------------------- | ---- | --------------------------------------------------------------------------------------------- |
+| 订单号       | merOrderNo   | String(32)              | M    | 本次交易唯一订单号                                                                            |
+| 还原材料路径 | fileUrlPath  | String(128)             | O    | 上传至sftp文件服务器的还原材料路径                                                            |
+| 交易类型     | paymentType  | String                  | M    | [参数详见字段说明](#6-1-1-paymenttype)                                              |
+| 回调地址     | callbackUrl  | String                  | M    | 用于结果通知的地址                                                                            |
+| 收款人列表   | payOrderList | `List<PayOrderRequest>` | M    | 收款信息                                                                                      |
+| 手续费标识   | feeFlag      | String(1)               | O    | 当手续费为实时收取时，用户可自行选择内扣还是外扣。<br/>1：外扣，0：内扣                       |
+| 还原材料列表 | payReduceList| `List<payReduceList>`   | O    | 当收款信息交易编码为游戏、电商、一般贸易填写[参数详见字段说明](#6-1-2-tradecodetype)|
+**PayOrderRequest信息**
+
+| 名称                      | Json标签              | 类型    | 属性 | 取值说明                                                                                                                          |
+| ------------------------- | --------------------- | ------- | ---- | --------------------------------------------------------------------------------------------------------------------------------- |
+| 单笔订单号                | merSingleNo           | String  | O    | 单个付款记录对应的订单号                                                                                                          |
+| 收款方账号                | payeeAccountNo        | String  | M    | 收款方银行账号                                                                                                                    |
+| 收款方姓名                | payeeName             | String  | M    | 收款方银行账户名                                                                                                                  |
+| 身份证号/统一社会信用代码 | identity              | String  | M    | 若收款方账户类型为0，则填写身份证号，为1则填写统一社会信用代码                                                                    |
+| 金额                      | amount                | Decimal | M    | 付款金额，单位为分，例：若付款200.00元，应填写20000最小为1                                                                        |
+| 联行号                    | cNAPSCode             | String  | M    | 收款方银行联行号                                                                                                                  |
+| 手机号                    | mobile                | String  | M    | 手机号                                                                        |
+| 交易编码                  | tradeCodeType         | String  | M    | [参数详见字段说明](#6-1-2-tradecodetype)                                                                                |
+| 付款方式                  | payMethod             | String  | O    | [参数详见字段说明](#6-1-3-paymethod),<br>tradeCodeType为TRADE并且paymentType为B2B时不能为空, <br>默认：cash_on_delivery |
+| 报关币种                  | declarationCurrency   | String  | O    | payMethod值为cash_on_delivery不能为空，默认CNY                                                                                    |
+| 预付比例                  | advanceProportion     | Float   | O    | payMethod值为advance ,0 < advanceProportion < 1 ,小数点后最多两位                                                                 |
+| 结算账期                  | settlementDate        | String  | O    | payMethod值为advance结算账期不能为空单位天                                                                                        |
+| 付款方名称                | senderName            | String  | M    | 真实付款方名称                                                                                                                    |
+| 付款方公司注册号          | senderIncorporationNo | String  | M    | 付款方公司注册号                                                                                                                  |
+| 付款方注册地              | registrationRegion    | String  | M    | 付款人住的区域swift国家地区                                                                                                       |
+| 付款方银行名称            | senderBankName        | String  | M    | 付款方银行名称                                                                                                                    |
+| 资金源                    | sourceFounds          | String  | O    | 选填                                                                                                                              |
+| 付款方银行账户            | senderBankAccountNo   | String  | O    | 付款方银行账户选填                                                                                                                |
+**payReduceList信息**
+
+| 名称      | Json标签        | 类型    | 属性  | 取值说明                                                     |
+|---------|---------------| ------- |-----|----------------------------------------------------------|
+| 订单号     | orderNo       | String  | M   | 单个付款记录对应的订单号(不超过32位)                                     |
+| 订单币种    | orderCurrency | String  | M   | 收款币种                                                     |
+| 订单金额    | orderAmount   | Decimal | M   | 收款金额，单位为分，例：若付款200.00元，应填写20000最小为1                      |
+| 订单日期    | orderDate     | String  | M   | 收款日期，格式为"yyyy-MM-dd"                                     |
+| 收款人姓名   | sellerName    | String  | C   | 收款人姓名 (交易编码为游戏时必填)                                       |
+| 收款人证件号  | sellerId      | String  | C   | 收款方证件号(长度不超过18位)(交易编码为游戏时必填)                             |
+| 商品名     | goodsName     | String  | M   | 商品名                                                     |
+| 商品种类    | goodsCategory | String  | C   | 商品种类 (交易编码为游戏时必填)                                                    |
+| 商品数量    | goodNumber    | String  | M   | 商品数量                                                     |
+| 物流公司    | wlName        | String  | C   | 物流公司名 (交易编码为一般贸易或者电商时必填)                                 |
+| 物流单号    | wlSeqno       | String  | C   | 物流单号 (交易编码为一般贸易或者电商时必填)                                  |
+| 店铺链接    | storeLink     | String  | C   | 店铺链接地址  (交易编码为一般贸易或者电商时必填)                               |
+| 平台名称    | platformName  | String  | C   | 平台名称   (交易编码为一般贸易或者电商时必填)                                |
+| 汇款用途    | purpose       | String  | C   | [汇款用途代码参数](#6-1-7-tradepurpose) (交易编码为一般贸易或者电商时必填) |
+| 买家银行名   | buyerBankName | String  | O   | 买家银行名                                                    |
+| 买家银行卡号  | buyerBankCard | String  | O   | 买家银行卡号                                                   |
+| 交易方式    | sendType      | String  | O   | 发货方式                                                     |
+| 快递金额    | sendAmount    | Decimal | O   | 快递金额，单位为分，例：若付款200.00元，应填写20000最小为1                      |
+| 税费金额    | taxAmount     | Decimal | O   | 税费金额，单位为分，例：若付款200.00元，应填写20000最小为1                      |
+| 其他金额    | otherAmount   | Decimal | O   | 其他金额，单位为分，例：若付款200.00元，应填写20000最小为1                      |
+| 申报人类型   | applyType     | String  | O   | 申报人类型                                                    |
+
+
+**4 响应字段**
+
+若响应报文头内respCode为S00000，则为受理成功，请等待异步通知（见[5.5.3 系统通知商户付款结果](#5-5-3)）付款结果。报文体：当
+respCode为S00000时：
+
+| 名称         | Json标签        | 类型       | 属性 | 取值说明                                          |
+| ------------ | --------------- | ---------- | ---- | ------------------------------------------------- |
+| 订单号       | merOrderNo      | String(32) | M    | 原样返回                                          |
+| 业务流水号   | bizFlowNo       | String(32) | M    | Ottpayhk生成的唯一业务流水号，与订单号一一对应    |
+| 状态         | status          | String(1)  | M    | "0":"接受", "1":"成功", "2":"失败",  "3":"处理中" |
+| 手续费币种   | feeCurrency     | String(3)  | O    | 所收取的手续费币种                                |
+| 手续费币种   | feeAmount       | Decimal    | O    | 所收取的手续费金额                                |
+| 实际付款金额 | actualPayAmount | Decimal    | O    | 实际付款金额    
+
+
+
+### 5.5.2 人民币付款业务查询
+
+**1 功能描述**
+
+| 交易代码 | TP3001                                     |
+| -------- | ------------------------------------------ |
+| 功能名称 | 人民币付款业务查询                         |
+| 功能描述 | 商户自行查询人民币付款最终结果             |
+| 调用方式 | 实时接口                                   |
+| 调用流程 | 商户发送人民币付款请求后，查询对应订单结果 |
+| 应用场景 | 商户需要知晓人民币付款最终结果             |
+
+**2 请求地址**
+
+**Url：** `https://{baseUrl}/api/tp3001`
+
+**Method：** `POST`
+
+**3 请求字段**
+
+
+| 名称       | Json标签   | 类型       | 属性 | 取值说明                                                                                                             |
+| ---------- | ---------- | ---------- | ---- | -------------------------------------------------------------------------------------------------------------------- |
+| 订单号     | merOrderNo | String(32) | O    | 付款发起时的订单号                                                                                                   |
+| 业务流水号 | bizFlowNo  | String(32) | O    | Ottpayhk 生成的唯一业务流水号， 与订单号一一对应<br>注：订单号与业务流水号仅需填写一个，若同时填写，以业务流水号为准 |
+                                                                   
+
+**4 响应字段**
+
+
+
+| 名称         | Json标签        | 类型          | 属性 | 取值说明                 |
+| ------------ | --------------- | ------------- | ---- | ------------------------ |
+| 订单号       | merOrderNo      | String(32)    | M    | 付款请求发起时的订单号   |
+| 业务流水号   | bizFlowNo       | String(32)    | M    | 付款请求返回的业务流水号 |
+| 结果代码     | respCode        | String(6)     | M    | 付款交易结果代码         |
+| 结果描述     | respDesc        | String(50)    | M    | 付款交易结果详情描述     |
+| 收款人列表   | payeeList       | `List<payee>` | M    | 收款人列表               |
+| 手续费币种   | feeCurrency     | String(3)     | O    | 所收取的手续费币种       |
+| 手续费币种   | feeAmount       | Decimal       | O    | 所收取的手续费金额       |
+| 实际付款金额 | actualPayAmount | Decimal       | O    | 实际付款金额             |
+
+**payee 的字段**
+
+| 名称                           | Json标签              | 类型       | 属性 | 取值说明                                                                                                                |
+| ------------------------------ | --------------------- | ---------- | ---- | ----------------------------------------------------------------------------------------------------------------------- |
+| 单笔订单号                     | merSingleNo           | String(32) | M    | 单个付款记录对应的订单号                                                                                                |
+| 收款方户名                     | payeeName             | String(64) | M    | 收款方银行账户户名                                                                                                      |
+| 收款方账号                     | payeeAccountNo        | String(32) | M    | 收款方银行账号                                                                                                          |
+| 收款方账户类型                 | acctType              | String(1)  | M    | 0 : 对私账户 1：对公账户                                                                                                |
+| 身份证号/<br>统一 社会信用代码 | identity              | String(32) | M    | 若收款方账户类型为 **0**，则填写**身份证号**，<br>为 **1** 则填写**统一社会信用代码**                                   |
+| 金额                           | amount                | String(18) | M    | 付款金额，单位为分，例：若付款 **200.00** 元，应填写 **20000**                                                          |
+| 联行号                         | cNAPSCode             | String(64) | M    | 联行号                                                                                                                  |
+| 手机号                     | mobile              | String(13) | M    | 手机号                                                                                                          |
+| 开户行名称                     | bankName              | String(32) | M    | 收款方银行名称                                                                                                          |
+| 开户行省份                     | bankProvince          | String(32) | M    | 收款方银行所在省份                                                                                                      |
+| 开户行市名                     | bankCity              | String(32) | M    | 收款方银行所在市名                                                                                                      |
+| 支行名称                       | bankBranchName        | String(32) | M    | 收款方银行支行名称                                                                                                      |
+| 交易编码                       | tradeCodeType         | String(6)  | M    | 对应交易属性类型，参见[参数详见字段说明](#6-1-2-tradecodetype)                                                |
+| 单笔结果代码                   | respCode              | String(6)  | M    | 单笔交易对应的结果代码                                                                                                  |
+| 单笔结果描述                   | respDesc              | String(50) | M    | 单笔交易对应的结果描述                                                                                                  |
+| 付款方式                       | payMethod             | String     | F    | **tradeCodeType**为 *TRADE*，并且 **paymentType** 为 *B2B* 时不能为空<br>[参数详见字段说明](#6-1-3-paymethod) |
+| 报关币种                       | declarationCurrency   | String     | F    | **payMethod** 值为 *cash_on_delivery* 不能为空                                                                          |
+| 预付比例                       | advanceProportion     | Float      | F    | **payMethod** 值为 advanc<br> 0 < advanceProportion < 1  小数点后最多两位                                               |
+| 结算账期                       | settlementDate        | String     | F    | **payMethod** 值为 advance <br>结算账期不能为空   单位天                                                                |
+| 付款方名称                     | senderName            | String     | M    | 真实付款方名称                                                                                                          |
+| 付款方公司注册号               | senderIncorporationNo | String     | M    | 付款方公司注册号                                                                                                        |
+| 付款方注册地                   | registrationRegion    | String     | M    | 付款人住的区域 swift 国家地区                                                                                           |
+| 付款方银行名称                 | senderBankName        | String     | M    | 付款方银行名称                                                                                                          |
+| 资金源                         | sourceFounds          | String     | F    | 选填                                                                                                                    |
+| 付款方银行账户                 | senderBankAccountNo   | String     | F    | 付款方银行账户 选填                                                                                       
+
+
+### 5.5.3 系统通知商户付款结果
+
+**1 功能描述**
+
+| 交易代码 | TP2001                                                                                                                                                                           |
+| -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 功能名称 | 付款回调                                                                                                                                                                         |
+| 功能描述 | Ottpayhk 通知商户付款结果                                                                                                                                                        |
+| 调用方式 | 实时接口                                                                                                                                                                         |
+| 调用流程 | 商户先调用 [5.5.1 人民币付款](#5-5-1)向 Ottpayhk 发起人民币付款请求，Ottpayhk 将交易。<br>处理完毕后，通知商户。若规定时间内未及时回调通知商户，商户应该发起主动查询 |
+| 应用场景 | 商户需要知晓人民币付款最终结果                                                                                                                                                   |
+
+<aside class="success">
+ 本通知将按照间隔时间渐长的方式持续通知24小时.<br>商户应当以http 200返回，若通知持续时间结束仍未正常返回，则不再通知。<br>商户应当自行通过 [5.5.2 人民币付款业务查询](#5-5-2) 查询接口查询交易结果。
+</aside>
+
+**2 请求地址**
+
+ **Url：** [5.1.1 人民币付款](#5-5-1) 中的 **callbackUrl** 
+  
+ **Method：** `POST`
+
+**3 请求字段**
+
+| 名称       | Json标签     | 类型          | 属性 | 取值说明                                        |
+| ---------- | ------------ | ------------- | ---- | ----------------------------------------------- |
+| 订单号     | merOrderNo   | String(32)    | M    | 原样返回                                        |
+| 业务流水号 | bizFlowNo    | String(32)    | M    | Ottpayhk 生成的唯一业务流水号，与订单号一一对应 |
+| 成功笔数   | successCount | Int           | M    | 返回成功笔数                                    |
+| 失败笔数   | faultCount   | Int           | M    | 返回失败笔数                                    |
+| 付款详情   | payeeList    | `List<payee>` | M    | 付款详情列表不分页                              |
+
+**payee 字段:**
+
+| 名称               | Json标签    | 类型         | 属性 | 取值说明                                       |
+| ------------------ | ----------- | ------------ | ---- | ---------------------------------------------- |
+| 单笔详情外部商户号 | merSingleNo | String       | M    | 商户传入的 管理商户系统的凭证号                |
+| 系统订单号         | applyNo     | String       |      | M	Ottpayhk 生成的订单号                        |
+| 金额               | Amount      | Number(18,2) | M    | 付款金额                                       |
+| 状态               | Status      | Int          | M    | "0":"接受","1", "成功","2","失败","3","处理中" |
+| 说明               | respDesc    | String       | M    | 交易具体说明                                   |
+| 状态码             | respCode    | String       | M    | 交易具体的状态码                               |
+
+
+
+### 5.5.4 查询总行
 
 **1 功能描述**
 
@@ -2226,7 +1973,7 @@ respCode为S00000时：
 
 
 
-### 5.3.6 查询总行下分行支持省份
+### 5.5.5 查询总行下分行支持省份
 
 **1 功能描述**
 
@@ -2286,7 +2033,7 @@ respCode为S00000时：
 
 
 
-### 5.3.7 查询总行下分行支持城市
+### 5.5.6 查询总行下分行支持城市
 
 **1 功能描述**
 
@@ -2348,7 +2095,9 @@ respCode为S00000时：
 | 城市名称英文 | cityNameEn | String(32) | M    | --       |
 
 
-### 5.3.8 查询总行下某城市所有分行
+
+
+### 5.5.7 查询总行下某城市所有分行
 
 **1 功能描述**
 
@@ -2449,7 +2198,10 @@ respCode为S00000时：
 
 
 
-### 5.3.9 查询国际付款字段
+## 5.6 国际汇款
+
+
+### 5.6.1 查询国际付款字段
 
 **1 功能描述**
 
@@ -2591,7 +2343,150 @@ respCode为S00000时：
 | 选填字段 | optional | `List<String>` | M    | 选填字段 |
 
 
-###  5.3.10 国际汇款历史交易查询
+
+### 5.6.2 国际汇款接口
+
+**1 功能描述**
+
+|          |                                                                                                              |
+| -------- | ------------------------------------------------------------------------------------------------------------ |
+| 交易代码 | TP1004                                                                                                       |
+| 功能名称 | 国际汇款接口                                                                                                 |
+| 功能描述 | 发起国际汇款，向境外收款人发起汇款。                                                                         |
+| 调用方式 | 实时接口                                                                                                     |
+| 调用流程 | 调用[5.6.1 查询国际付款字段](#5-6-1)获取收款方所需字段后，依据相应字段，向收款人发起汇款。 |
+| 应用场景 | 发起国际汇款，向境外收款人发起汇款                                                                           |
+
+**2 请求地址**
+
+**Url：** `https://{baseUrl}/api/tp1004`
+
+**Method：** `POST`
+
+> 请求示例:
+
+```json
+{
+    "merOrderNo":"1245",
+    "countryCode":"gb",
+    "arriveCurrency": "gbp",
+    "debitCurrency": "gbp",
+    "payType": "local",
+    "accountType": "1",
+    "arriveAmount":"100",
+    "purpose":"1",
+    "payer": {
+        "payerCompanyName":"demo company",
+        "payerAddress":"No.2 Street",
+        "payerCountry":"hk",
+        "endSenderName":"fwefwe",
+        "payerCompanyRegisterNo":"wegwefwef",
+        "payerBankName":"fwef"
+    },
+    "payee": {
+        "bankAcctType":"01",
+        "payeeCompanyName":"payee company",
+        "payeeAddress":"No.payee street",
+        "payeeZipCode":"132423",
+        "payeeCity":"London",
+        "payeeBankName":"Center bank",
+        "payeeBankAccountName":"payee company",
+        "payeeBankAccountNo":"2323r23fwef",
+        "payeeBankBranchCode":"sdfwe2d"
+    },
+    "fxBizFlow": "23434578432",
+    "tradeComments":"trade remark"
+}
+```
+**3 请求字段**
+
+| 名称         | Json标签       | 类型   | 属性 | 取值说明                                                                               |
+| ------------ | -------------- | ------ | ---- | -------------------------------------------------------------------------------------- |
+| 商户订单号   | merOrderNo     | string | M    | 商户自定义订单号，需唯一                                                               |
+| 收款国家     | countryCode    | string | M    | iso 3166-1标准2字代码                                                                  |
+| 收款币种     | arriveCurrency | string | M    | 收款方币种，3位标准货币代码                                                            |
+| 扣款币种     | debitCurrency  | string | M    | 扣款币种，3位标准货币代码                                                              |
+| 付款方式     | payType        | string | M    | 可选值：local 或者 swift                                                               |
+| 收款账户类型 | accountType    | string | M    | 暂只支持输入 1（银行账户）                                                             |
+| 扣款金额     | debitAmount   | string | C    | 扣款金额，即扣款币种对应金额                                             |
+| 收款金额     | arriveAmount   | string | C    | 收款金额（扣款金额和收款金额2选1填写，若同时填写，以收款金额为准）                     |
+| 汇款目的     | purpose        | string | M    | 详见[6.1.4汇款目的列表](#6-1-4-purpose)                                      |
+| 付款方字段   | payer          | object | M    | 按照相应国家tp3005返回的数据进行填写                                                   |
+| 收款方字段   | payee          | Object | M    | 按照相应国家tp3005返回的数据进行填写                                                   |
+| 关联fx流水号 | fxBizFlow      | String | O    | 关联fx流水号，若填写此字段，则本接口不校验余额，<br>但扣款金额不能大于对应fx订单的金额 |
+| 汇款附言     | tradeComments  | String | O    | 汇款附言                                                                               |
+| 汇款目的备注 | purposeRemark  | String | O    | 当purpose为99时，汇款目的以此为准                                                      |
+
+                                                                
+**4 响应字段**
+
+
+| 名称         | Json标签       | 类型   | 属性 | 取值说明                         |
+| ------------ | -------------- | ------ | ---- | -------------------------------- |
+| 扣款币种     | debitCurrency  | String | M    | 扣款币种                         |
+| 收款币种     | arriveCurrency | String | M    | 收款币种                         |
+| 汇率         | rate           | String | M    | 汇率                             |
+| 扣款金额     | debitAmount    | String | M    | 扣款金额                         |
+| 收款金额     | arriveAmount   | String | M    | 收款金额                         |
+| 报价ID       | quoteId        | long   | M    | 报价ID                           |
+| 报价有效期   | expireTime     | long   | M    | unix时间戳，此次询价的有效时间。 |
+| 商户订单号   | merOrderNo     | String | M    | 商户传入的订单号                 |
+| 关联fx流水号 | fxBizFlow      | String | O    | 关联fx流水号  
+
+                   |
+
+### 5.6.3 国际汇款交易确认
+
+**1 功能描述**
+
+|          |                                                                                |
+| -------- | ------------------------------------------------------------------------------ |
+| 交易代码 | TP1005                                                                         |
+| 功能名称 | 国际汇款交易确认                                                               |
+| 功能描述 | 确认国际汇款交易，正式提交。                                                   |
+| 调用方式 | 实时接口                                                                       |
+| 调用流程 | 调用[5.6.2 国际汇款接口](#5-6-2)提交交易后，调用此接口确认交易。 |
+| 应用场景 | 发起国际汇款，向境外收款人发起汇款后，确认国际汇款交易，正式提交。             |
+
+**2 请求地址**
+
+**Url：** `https://{baseUrl}/api/tp1005`
+
+**Method：** `POST`
+
+**3 请求字段**
+
+| 名称    | Json标签    | 类型   | 属性 | 取值说明    |
+| ------- | ----------- | ------ | ---- | ----------- |
+| 报价ID  | quoteId     | Long   | M    | 报价ID      |
+| 回调url | callbackUrl | String | M    | 回调通知Url |
+                                                                   
+
+**4 响应字段**
+
+
+| 名称         | Json标签       | 类型   | 属性 | 取值说明                     |
+| ------------ | -------------- | ------ | ---- | ---------------------------- |
+| 报价ID       | quoteId        | long   | M    | 报价ID                       |
+| 收款国家     | countryCode    | string | M    | iso 3166-1标准2字代码        |
+| 收款币种     | arriveCurrency | string | M    | 收款方币种，3位标准货币代码  |
+| 扣款币种     | debitCurrency  | string | M    | 扣款币种，3位标准货币代码    |
+| 付款方式     | payType        | string | M    | 可选值：local 或者 swift     |
+| 收款账户类型 | accountType    | string | M    | 暂只支持输入 1（银行账户）   |
+| 付款金额     | arriveAmount   | string | M    | 收款金额                     |
+| 扣款金额     | debitAmount    | String | M    | 扣款金额                     |
+| 汇率         | rate           | String | M    | 汇率                         |
+| 状态         | status         | String | M    | 订单状态                     |
+| 结果码       | code           | String | M    | 交易结果码                   |
+| 结果描述     | message        | String | M    | 交易结果描述                 |
+| 交易流水号   | bizFlow        | String | M    | 对应国际汇款交易的唯一流水号 |
+| 商户订单号   | merOrderNo     | String | M    | 商户订单号                   |
+| 关联fx流水号 | fxBizFlow      | String | O    | 关联fx流水号     
+
+
+
+
+###  5.6.4 国际汇款历史交易查询
 
 **1 功能描述**
 
@@ -2651,8 +2546,297 @@ respCode为S00000时：
 | 关联fx流水号   | fxBizFlow      | String | O    | 关联fx流水号                           |
 
 
+                                                        
+### 5.6.5 国际汇款交易结果通知
 
-###  5.3.11 提现交易历史查询
+**1 功能描述**
+
+| 交易代码 | TP2003                                                                                                                                                            |
+| -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 功能名称 | 国际汇款交易结果通知                                                                                                                                              |
+| 功能描述 | 国际汇款的交易结果异步通知                                                                                                                                        |
+| 调用方式 | 通知接口                                                                                                                                                          |
+| 调用流程 | --                                                                                                                                                                |
+| 应用场景 | [5.6.3 国际汇款交易确认](#5-6-3)发起成功且交易处理完毕后，将根据[5.1.5 国际汇款交易确认](#5-6-3)参数内的回调Url进行回调通知最终结果。 |
+
+<aside class="success">
+ 本通知将按照间隔时间渐长的方式持续通知24小时.<br>商户应当以http 200返回，若通知持续时间结束仍未正常返回，则不再通知。<br>商户应当自行通过 [5.4.3 换汇历史交易查询](#5-4-3)查询接口查询交易结果。
+</aside>
+
+**2 请求地址**
+
+**Url：** [5.6.3 国际汇款交易确认](#5-6-3)中的 **callbackUrl**
+
+**Method：** `POST`
+
+**3 请求字段**
+
+| 名称         | Json标签       | 类型   | 属性 | 取值说明                     |
+| ------------ | -------------- | ------ | ---- | ---------------------------- |
+| 报价ID       | quoteId        | long   | M    | 报价ID                       |
+| 收款国家     | countryCode    | string | M    | iso 3166-1标准2字代码        |
+| 收款币种     | arriveCurrency | string | M    | 收款方币种，3位标准货币代码  |
+| 扣款币种     | debitCurrency  | string | M    | 扣款币种，3位标准货币代码    |
+| 付款方式     | payType        | string | M    | 可选值：local 或者 swift     |
+| 收款账户类型 | accountType    | string | M    | 暂只支持输入 1（银行账户）   |
+| 付款金额     | arriveAmount   | string | M    | 收款金额                     |
+| 扣款金额     | debitAmount    | String | M    | 扣款金额                     |
+| 汇率         | rate           | String | M    | 汇率                         |
+| 付款状态     | status         | string | M    | 订单状态                     |
+| 结果码       | code           | String | M    | 交易结果码                   |
+| 结果描述     | message        | String | M    | 交易结果描述                 |
+| 交易流水号   | bizFlow        | String | M    | 对应国际汇款交易的唯一流水号 |
+| 商户订单号   | merOrderNo     | String | M    | 商户订单号                   |
+| 关联fx流水号 | fxBizFlow      | String | O    | 关联fx流水号                 |
+      
+
+## 5.7 内部转账
+
+### 5.7.1 商户内部间转账
+
+**1 功能描述**
+
+|          |                                              |
+| -------- | -------------------------------------------- |
+| 交易代码 | TP1010                                       |
+| 功能名称 | 商户内部间转账                             |
+| 功能描述 | 同为在OTT注册的商户，向对方OTT账户进行转账                 |
+| 调用方式 | 实时接口                                     |
+| 调用流程 | --                                           |
+| 应用场景 | 同为在OTT注册的商户，向对方OTT账户进行转账 |
+
+**2 请求地址**
+
+**Url：** `https://{baseUrl}/api/tp1010`
+
+**Method：** `POST`
+
+> 请求示例:
+
+```json
+{
+        "merOrderNo":"150",
+        "toAcctNo":"006804100255",
+        "toAcctName":"TEST",
+        "currency":"USD",
+        "amount":"100",
+        "purpose":"1",
+        "remark":""
+}
+```                
+
+**3 请求字段**
+
+| 名称                     | Json标签              | 类型        | 属性 | 取值说明                                                                     |
+| ------------------------ | --------------------- | ----------- | ---- | ---------------------------------------------------------------------------- |
+| 商户订单号                   | merOrderNo               | string(32)  | M    | 商户自定义的唯一订单号                                                                       |
+| 收款方账号             | toAcctNo   | string(32) | M    | 收款方账号                                                                 |
+| 收款方账户名             | toAcctName        | string(255) | M    | 收款方账户名                                                                 |
+| 转账币种               | currency         | string(3)   | M    | 转账币种 |
+| 转账金额               | amount     | Decimal(18,2) | M    | 转账金额                                                                   |
+| 汇款目的               | purpose | string(3) | M    | 汇款目的，参见附录6.1.4付款目的                                                             |
+| 附言               | remark    | string(255) | O   | 附言                                                                   |
+
+                                                 
+> 返回示例:
+
+```json
+{
+        "bizFlow": "70210415775519090003",
+        "status": "SUCC",
+        "feeCurrency": "USD",
+        "feeAmount": "2.50"
+}
+```
+
+**4 响应字段**
+
+
+| 名称       | Json标签 | 类型        | 属性 | 取值说明                                                          |
+| ---------- | -------- | ----------- | ---- | ----------------------------------------------------------------- |
+| 业务流水号 | bizFlow  | string(32)  | M    | OTT侧唯一业务订单号                                                |
+| 结果状态     | status     | string(6)   | M    | 结果状态 SUCC：成功 FAIL：失败 |
+| 手续费币种   | feeCurrency  | string(3) | O    | 手续费币种，若手续费模式为实时收取时，则返回此字段                      |
+| 手续费金额   | feeAmount  | string(22) | O    | 手续费金额，若手续费模式为实时收取时，则返回此字段                       |
+
+
+
+## 5.8 充值
+
+### 5.8.1 充值交易历史查询
+
+**1 功能描述**
+
+| 交易代码 | TP3008                 |
+| -------- | ---------------------- |
+| 功能名称 | 充值历史交易查询       |
+| 功能描述 | 充值历史交易查询       |
+| 调用方式 | 实时接口               |
+| 调用流程 | --                     |
+| 应用场景 | 查询以往的充值历史交易 |
+
+**2 请求地址**
+
+
+**Url：** `https://{baseUrl}/api/tp3008`
+
+**Method：** `POST`
+
+**3 请求字段**
+
+
+| 名称         | Json标签  | 类型          | 属性 | 取值说明                                               |
+| ------------ | --------- | ------------- | ---- | ------------------------------------------------------ |
+| 查询起始时间 | beginDate | Long          | O    | Unix13位时间戳，查询开始时间，闭区间                   |
+| 查询结束时间 | endDate   | Long          | O    | Unix13位时间戳，查询开始时间，闭区间                   |
+| 业务订单号   | batchNo   | String(32)    | O    | OTT生成的唯一流水号                                    |
+| 充值银行     | bankCode  | String(8)     | O    | 充值银行代码                                           |
+| 充值币种     | currency  | String(3)     | O    | 充值币种                                               |
+| 查询最小金额 | minAmount | decimal(18,2) | O    | 查询最小金额                                           |
+| 查询最大金额 | maxAmount | decimal(18,2) | O    | 查询最大金额                                           |
+| 充值状态     | status    | String(3)     | O    | 充值状态 01: "待处理"; 02: "充值成功";  03: "充值拒绝" |
+| 第几页       | pageNum   | Integer       | O    | 查询第几页                                             |
+| 每页多少条   | pageSize  | Integer       | O    | 每页多少条，每页最多支持100条                          |
+
+> 返回示例:
+
+```json
+{
+	"pageNum": 1,
+	"pageSize": 10,
+	"total": 35,
+	"list": [{
+		"batchNo": "20180122SDC760719",
+		"curType": "USD",
+		"amount": "10000.00",
+		"bank": "中国银行",
+		"status": "02",
+		"createTime": "2020-06-28 17:17:45",
+		"updateTime": "2020-06-29 16:56:54",
+		"account": "Company Name1"
+	},{
+		"batchNo": "11191226453692390002",
+		"curType": "CNY",
+		"amount": "240.06",
+		"bank": "中国银行",
+		"status": "02",
+		"createTime": "2019-12-26 15:29:29",
+		"updateTime": "2019-12-26 15:29:39",
+		"account": null
+	}]
+}
+```
+
+**4 响应字段**
+
+
+| 名称             | Json标签 | 类型                   | 属性 | 取值说明 |
+| ---------------- | -------- | ---------------------- | ---- | -------- |
+| 当前页码         | pageNum  | Int                    | M    | --       |
+| 页显示数         | pageSize | Int                    | M    | --       |
+| 总数             | total    | Int                    | M    | --       |
+| 充值流水信息集合 | list     | `List<RechargeRecord>` | M    | --       |
+
+**RechargeRecord 的字段**
+
+| 名称         | Json标签   | 类型          | 属性 | 取值说明                                               |
+| ------------ | ---------- | ------------- | ---- | ------------------------------------------------------ |
+| 充值订单     | batchNo    | string(32)    | M    | 充值订单                                               |
+| 币种         | curType    | string(3)     | M    | 充值币种，3位标准货币代码                              |
+| 金额         | amount     | decimal(18,2) | M    | 充值金额                                               |
+| 充值银行     | bank       | string(64)    | M    | 充值银行                                               |
+| 充值账户     | account    | string(64)    | M    | 充值账户                                               |
+| 充值状态     | status     | string(2)     | M    | 充值状态 01: "待处理"; 02: "充值成功";  03: "充值拒绝" |
+| 充值发起时间 | createTime | Date          | M    | 充值发起时间                                           |
+| 充值入账时间 | updateTime | Date          | M    | 充值入账时间                                           |
+
+
+## 5.9 提现
+
+### 5.9.1 提现接口
+
+**1 功能描述**
+
+|          |                                                  |
+| -------- | ------------------------------------------------ |
+| 交易代码 | TP1008                                           |
+| 功能名称 | 提现交易申请                                     |
+| 功能描述 | 用于发起境外提现，需提现账户名与商户注册名称相同 |
+| 调用方式 | 实时接口                                         |
+| 调用流程 | --                                               |
+| 应用场景 | 用于发起境外提现，需提现账户名与商户注册名称相同 |
+
+<aside class="success">
+默认提现账户名称即为商户入网时提供的注册名称 
+</aside>
+
+**2 请求地址**
+
+**Url：** `https://{baseUrl}/api/tp1008`
+
+**Method：** `POST`
+
+> 请求示例:
+
+```json
+{
+    "merOrderNo":"8793478374",
+    "currency":"USD",
+    "amount": 10000.00,
+    "bankAccountNo": "6248348342123342",
+    "bankName": "Citibank",
+    "bankAddress": "Queens Road, New York",
+    "swiftCode":"7643843",
+    "proxyBankName":"",
+    "proxyBankAddress": "",
+    "proxySwiftCode":"",
+    "remark":"xxx公司贸易提现款项",
+    "callbackUrl":"https://xxxx.xxxxxx.xx/xx"
+}
+```
+
+**3 请求字段**
+
+| 名称             | Json标签         | 类型          | 属性 | 取值说明                   |
+| ---------------- | ---------------- | ------------- | ---- | -------------------------- |
+| 商户订单号       | merOrderNo       | string(32)    | M    | 商户传入本次交易唯一订单号 |
+| 币种             | currency         | string(3)     | M    | 提现币种，3位标准货币代码  |
+| 金额             | amount           | decimal(18,2) | M    | 提现金额                   |
+| 银行账号/IBAN    | bankAccountNo    | string(64)    | M    | 提现银行账号或IBAN         |
+| 银行名称         | bankName         | string(64)    | M    | 提现银行名称               |
+| 银行地址         | bankAddress      | string(256)   | M    | 提现银行的地址             |
+| swift code       | swiftCode        | string(32)    | M    | 提现银行的swift code       |
+| 代理行名称       | proxyBankName    | string(64)    | O    | 代理行名称                 |
+| 代理行地址       | proxyBankAddress | string(256)   | O    | 代理行地址                 |
+| 代理行swift code | proxySwiftCode   | string(32)    | O    | 代理行swift code           |
+| 汇款附言         | remark           | string(64)    | O    | 汇款附言                   |
+| 回调url          | callbackUrl      | string(256)   | M    | 回调通知Url                |
+                                                                   
+> 返回示例:
+
+```json
+{
+    "merOrderNo":"8793478374",
+    "bizFlow":"2184394993483534",
+    "status": "PROCESS",
+    "code": "",
+    "message": ""
+}
+```
+**4 响应字段**
+
+
+| 名称       | Json标签   | 类型       | 属性 | 取值说明                   |
+| ---------- | ---------- | ---------- | ---- | -------------------------- |
+| 商户订单号 | merOrderNo | string(32) | M    | 商户传入本次交易唯一订单号 |
+| 业务流水号 | bizFlow    | string(32) | M    | OTT生成的唯一流水号        |
+| 状态       | status     | string(8)  | M    | 交易结果状态               |
+| 结果码     | code       | string(8)  | M    | 交易结果代码               |
+| 结果描述   | message    | string(64) | M    | 交易结果描述               |
+
+
+
+###  5.9.2 提现交易历史查询
 
 **1 功能描述**
 
@@ -2757,66 +2941,129 @@ respCode为S00000时：
 | 提现发起时间     | createTime       | long          | M    | 提现发起时间               |
 
 
-### 5.3.12 充值交易历史查询
+
+
+### 5.9.3 提现结果通知
 
 **1 功能描述**
 
-| 交易代码 | TP3008                 |
-| -------- | ---------------------- |
-| 功能名称 | 充值历史交易查询       |
-| 功能描述 | 充值历史交易查询       |
-| 调用方式 | 实时接口               |
-| 调用流程 | --                     |
-| 应用场景 | 查询以往的充值历史交易 |
+|          |                                                                                                                               |
+| -------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| 交易代码 | TP2005                                                                                                                        |
+| 功能名称 | 提现结果通知                                                                                                                  |
+| 功能描述 | 提现结果异步通知                                                                                                              |
+| 调用方式 | 通知接口                                                                                                                      |
+| 调用流程 | --                                                                                                                            |
+| 应用场景 | [提现交易](#5-9-1)发起成功且交易处理完毕后，将根据[提现交易](#5-9-1)参数内的回调Url进行回调通知最终结果。 |
+
+<aside class="success">
+本通知将按照间隔时间渐长的方式持续通知24小时.<br>商户应当以http 200返回，若通知持续时间结束仍未正常返回，则不再通知。 
+</aside>
+
+**2 请求地址**
+
+**Url：** [提现交易](#5-9-1)中的 **callbackUrl**
+
+**Method：** `POST`
+
+> 请求示例:
+
+```json
+{
+    "merOrderNo":"8793478374",
+    "currency":"USD",
+    "amount": 10000.00,
+    "bankAccountNo": "6248348342123342",
+    "bankName": "Citibank",
+    "bankAddress": "Queens Road, New York",
+    "swiftCode":"7643843",
+    "proxyBankName":"",
+    "proxyBankAddress": "",
+    "proxySwiftCode":"",
+    "remark":"xxx公司贸易提现款项",
+    "bizFlow":"3213347378487348734",
+    "status":"SUCCESS",
+    "code":"S00000",
+    "message":"成功"
+}
+```
+
+**3 请求字段**
+
+| 名称             | Json标签         | 类型          | 属性 | 取值说明                   |
+| ---------------- | ---------------- | ------------- | ---- | -------------------------- |
+| 商户订单号       | merOrderNo       | string(32)    | M    | 商户传入本次交易唯一订单号 |
+| 币种             | currency         | string(3)     | M    | 提现币种，3位标准货币代码  |
+| 金额             | amount           | decimal(18,2) | M    | 提现金额                   |
+| 提现账户名称     | bankAccountName  | string(64)    | M    | 提现账户名称               |
+| 银行账号/IBAN    | bankAccountNo    | string(64)    | M    | 提现银行账号或IBAN         |
+| 银行名称         | bankName         | string(64)    | M    | 提现银行名称               |
+| 银行地址         | bankAddress      | string(256)   | M    | 提现银行的地址             |
+| swift code       | swiftCode        | string(32)    | M    | 提现银行的swift code       |
+| 代理行名称       | proxyBankName    | string(64)    | O    | 代理行名称                 |
+| 代理行地址       | proxyBankAddress | string(256)   | O    | 代理行地址                 |
+| 代理行swift code | proxySwiftCode   | string(32)    | O    | 代理行swift code           |
+| 汇款附言         | remark           | string(64)    | O    | 汇款附言                   |
+| 业务流水号       | bizFlow          | string(32)    | M    | OTT生成的唯一流水号        |
+| 交易结果状态     | status           | string(8)     | M    | 交易结果状态               |
+| 交易结果码       | code             | string(8)     | M    | 交易结果码                 |
+| 结果描述         | message          | string(64)    | M    | 交易结果描述               |
+
+
+
+## 5.10 手续费
+
+###  5.10.1 手续费交易历史查询
+
+**1 功能描述**
+
+| 交易代码 | TP3010                   |
+| -------- | ------------------------ |
+| 功能名称 | 手续费历史交易查询       |
+| 功能描述 | 手续费历史交易查询       |
+| 调用方式 | 实时接口                 |
+| 调用流程 | --                       |
+| 应用场景 | 查询以往的手续费历史交易 |
 
 **2 请求地址**
 
 
-**Url：** `https://{baseUrl}/api/tp3008`
+**Url：** `https://{baseUrl}/api/tp3010`
 
 **Method：** `POST`
 
 **3 请求字段**
 
 
-| 名称         | Json标签  | 类型          | 属性 | 取值说明                                               |
-| ------------ | --------- | ------------- | ---- | ------------------------------------------------------ |
-| 查询起始时间 | beginDate | Long          | O    | Unix13位时间戳，查询开始时间，闭区间                   |
-| 查询结束时间 | endDate   | Long          | O    | Unix13位时间戳，查询开始时间，闭区间                   |
-| 业务订单号   | batchNo   | String(32)    | O    | OTT生成的唯一流水号                                    |
-| 充值银行     | bankCode  | String(8)     | O    | 充值银行代码                                           |
-| 充值币种     | currency  | String(3)     | O    | 充值币种                                               |
-| 查询最小金额 | minAmount | decimal(18,2) | O    | 查询最小金额                                           |
-| 查询最大金额 | maxAmount | decimal(18,2) | O    | 查询最大金额                                           |
-| 充值状态     | status    | String(3)     | O    | 充值状态 01: "待处理"; 02: "充值成功";  03: "充值拒绝" |
-| 第几页       | pageNum   | Integer       | O    | 查询第几页                                             |
-| 每页多少条   | pageSize  | Integer       | O    | 每页多少条，每页最多支持100条                          |
+| 名称         | Json标签  | 类型       | 属性 | 取值说明                                            |
+| ------------ | --------- | ---------- | ---- | --------------------------------------------------- |
+| 查询起始时间 | beginDate | Long       | O    | Unix13位时间戳，查询开始时间，闭区间                |
+| 查询结束时间 | endDate   | Long       | O    | Unix13位时间戳，查询开始时间，闭区间                |
+| 业务订单号   | batchNo   | String(32) | O    | OTT生成的唯一流水号                                 |
+| 业务类型     | busiType  | String(6)  | O    | [业务类型](#6-1-5-biztype)                |
+| 手续费状态   | status    | String(3)  | O    | 手续费状态 10: "未收取", 11: "已收取", 12: "已退回" |
+| 第几页       | pageNum   | Integer    | O    | 查询第几页                                          |
+| 每页多少条   | pageSize  | Integer    | O    | 每页多少条，每页最多支持100条                       |
 
+                                                                
 > 返回示例:
 
 ```json
 {
 	"pageNum": 1,
 	"pageSize": 10,
-	"total": 35,
-	"list": [{
-		"batchNo": "20180122SDC760719",
-		"curType": "USD",
-		"amount": "10000.00",
-		"bank": "中国银行",
-		"status": "02",
-		"createTime": "2020-06-28 17:17:45",
-		"updateTime": "2020-06-29 16:56:54",
-		"account": "Company Name1"
-	},{
-		"batchNo": "11191226453692390002",
-		"curType": "CNY",
-		"amount": "240.06",
-		"bank": "中国银行",
-		"status": "02",
-		"createTime": "2019-12-26 15:29:29",
-		"updateTime": "2019-12-26 15:29:39",
-		"account": null
+	"total": 2343,
+	"list": [ {
+		"batchNo": "41200514566616790045",
+		"merSingleBatchNo": "10011",
+		"bizType": "C00002",
+		"tradeCurrency": "PHP",
+		"tradeAmt": 60000.0000,
+		"feeCurrency": "USD",
+		"feeTradeAmt": 2.0000,
+		"status": "11",
+		"tradeTime": "2020-05-14 19:57:33",
+		"remark": "实时手续费流水"
 	}]
 }
 ```
@@ -2824,28 +3071,91 @@ respCode为S00000时：
 **4 响应字段**
 
 
-| 名称             | Json标签 | 类型                   | 属性 | 取值说明 |
-| ---------------- | -------- | ---------------------- | ---- | -------- |
-| 当前页码         | pageNum  | Int                    | M    | --       |
-| 页显示数         | pageSize | Int                    | M    | --       |
-| 总数             | total    | Int                    | M    | --       |
-| 充值流水信息集合 | list     | `List<RechargeRecord>` | M    | --       |
+| 名称           | Json标签 | 类型               | 属性 | 取值说明 |
+| -------------- | -------- | ------------------ | ---- | -------- |
+| 当前页码       | pageNum  | Int                | M    | --       |
+| 页显示数       | pageSize | Int                | M    | --       |
+| 总数           | total    | Int                | M    | --       |
+| 手续费信息集合 | list     | `List<FeeFlowRes>` | M    | --       |
 
-**RechargeRecord 的字段**
+**FeeFlowRes 的字段**
 
-| 名称         | Json标签   | 类型          | 属性 | 取值说明                                               |
-| ------------ | ---------- | ------------- | ---- | ------------------------------------------------------ |
-| 充值订单     | batchNo    | string(32)    | M    | 充值订单                                               |
-| 币种         | curType    | string(3)     | M    | 充值币种，3位标准货币代码                              |
-| 金额         | amount     | decimal(18,2) | M    | 充值金额                                               |
-| 充值银行     | bank       | string(64)    | M    | 充值银行                                               |
-| 充值账户     | account    | string(64)    | M    | 充值账户                                               |
-| 充值状态     | status     | string(2)     | M    | 充值状态 01: "待处理"; 02: "充值成功";  03: "充值拒绝" |
-| 充值发起时间 | createTime | Date          | M    | 充值发起时间                                           |
-| 充值入账时间 | updateTime | Date          | M    | 充值入账时间                                           |
+| 名称                   | Json标签         | 类型          | 属性 | 取值说明                                            |
+| ---------------------- | ---------------- | ------------- | ---- | --------------------------------------------------- |
+| 订单号                 | batchNo          | string(32)    | M    | 订单号                                              |
+| 商户订单号             | merSingleBatchNo | string(32)    | O    | 商户传入本次交易唯一订单号                          |
+| 业务类型               | bizType          | String(6)     | M    | [业务类型](#6-1-5-biztype)                |
+| 手续费币种             | feeCurrency      | String(3)     | O    | 手续费币种，3位标准货币代码                         |
+| 手续费币种对应交易金额 | feeTradeAmt      | decimal(18,2) | M    | 手续费币种对应交易金额                              |
+| 手续费状态             | status           | string(2)     | M    | 手续费状态 10: "未收取", 11: "已收取", 12: "已退回" |
+| 交易币种               | tradeCurrency    | string(3)     | M    | 交易币种，3位标准货币代码                           |
+| 交易金额               | tradeAmt         | decimal(18,2) | M    | 交易金额                                            |
+| 交易时间               | tradeTime        | Date          | M    | 交易时间                                            |
+| 备注                   | remark           | string(1024)  | M    | 备注     
 
 
-### 5.3.13 账务流水交易查询
+## 5.11 账务
+
+### 5.11.1 账户余额查询
+
+**1 功能描述**
+
+| 交易代码 | TP3004           |
+| -------- | ---------------- |
+| 功能名称 | 账户余额查询     |
+| 功能描述 | 当前账户余额查询 |
+| 调用方式 | 实时接口         |
+| 调用流程 | --               |
+| 应用场景 | 当前账户余额查询 |
+
+**2 请求地址**
+
+
+**Url：** `https://{baseUrl}/api/tp3004`
+
+**Method：** `POST`
+
+**3 请求字段**
+
+
+| 名称 | Json标签 | 类型      | 属性 | 取值说明                         |
+| ---- | -------- | --------- | ---- | -------------------------------- |
+| 币种 | currency | String(3) | O    | 币种，若不传则为查询所有币种账户 |
+
+                                                                   
+> 返回示例:
+
+```json
+[
+    {
+        "currency": "USD",
+        "balance": "2000.00",
+        "status":"on"
+    },
+    {
+        "currency": "CNY",
+        "balance": "8231.22",
+        "status":"off"
+    }
+]
+
+```
+**4 响应字段**
+
+
+ 接口返回对象为: **`List<CurrencyBalance>`**
+
+**CurrencyBalance 字段：**
+
+| 名称     | Json标签 | 类型      | 属性 | 取值说明                        |
+| -------- | -------- | --------- | ---- | ------------------------------- |
+| 币种     | currency | String(3) | M    | 币种                            |
+| 余额     | balance  | String(3) | M    | 账户余额                        |
+| 账户状态 | status   | String(3) | M    | 账户状态: on 为启用， off为禁用 |
+
+
+
+### 5.11.2 账务流水交易查询
 
 **1 功能描述**
 
@@ -2874,7 +3184,7 @@ respCode为S00000时：
 | 业务订单号   | batchNo   | String(32) | O    | OTT生成的唯一流水号                     |
 | 币种         | currency  | String(3)  | O    | 币种                                    |
 | 收支类型     | flowType  | String(3)  | O    | 收支类型 1: "入金", 2: "出金"           |
-| 流水类型     | busiType  | String(3)  | O    | [6.1.6流水类型](#616-busitype-流水类型) |
+| 流水类型     | busiType  | String(3)  | O    | [6.1.6流水类型](#6-1-6-busitype) |
 | 第几页       | pageNum   | Integer    | O    | 查询第几页                              |
 | 每页多少条   | pageSize  | Integer    | O    | 每页多少条，每页最多支持100条           |
 
@@ -2921,7 +3231,7 @@ respCode为S00000时：
 | ------------ | ---------- | ------------- | ---- | --------------------------------------- |
 | 账务流水订单 | batchNo    | string(32)    | M    | 账务流水订单                            |
 | 币种         | currency   | string(3)     | M    | 账务流水币种，3位标准货币代码           |
-| 流水类型     | busiType   | String(3)     | M    | [6.1.6流水类型](#616-busitype-流水类型) |
+| 流水类型     | busiType   | String(3)     | M    | [6.1.6流水类型](#6-1-6-busitype) |
 | 入金         | inAmount   | decimal(18,2) | M    | 入金金额                                |
 | 出金         | outAmount  | decimal(18,2) | M    | 出金金额                                |
 | 可用金额     | vailAmount | decimal(18,2) | M    | 可用金额                                |
@@ -2929,108 +3239,25 @@ respCode为S00000时：
 
 
 
-###  5.3.14 手续费交易历史查询
+
+## 5.12 配置
+
+### 5.12.1 回调地址设置
 
 **1 功能描述**
 
-| 交易代码 | TP3010                   |
-| -------- | ------------------------ |
-| 功能名称 | 手续费历史交易查询       |
-| 功能描述 | 手续费历史交易查询       |
-| 调用方式 | 实时接口                 |
-| 调用流程 | --                       |
-| 应用场景 | 查询以往的手续费历史交易 |
+|          |                                              |
+| -------- | -------------------------------------------- |
+| 交易代码 | TP1014                                       |
+| 功能名称 | 对于通知接口，设置回调地址                            |
+| 功能描述 | 对于通知接口，设置回调地址                   |
+| 调用方式 | 实时接口                                     |
+| 调用流程 | --                                           |
+| 应用场景 | 对于无交易传参的callback接口，单独设置回调地址 |
 
 **2 请求地址**
 
-
-**Url：** `https://{baseUrl}/api/tp3010`
-
-**Method：** `POST`
-
-**3 请求字段**
-
-
-| 名称         | Json标签  | 类型       | 属性 | 取值说明                                            |
-| ------------ | --------- | ---------- | ---- | --------------------------------------------------- |
-| 查询起始时间 | beginDate | Long       | O    | Unix13位时间戳，查询开始时间，闭区间                |
-| 查询结束时间 | endDate   | Long       | O    | Unix13位时间戳，查询开始时间，闭区间                |
-| 业务订单号   | batchNo   | String(32) | O    | OTT生成的唯一流水号                                 |
-| 业务类型     | busiType  | String(6)  | O    | [业务类型](#_6-1-5-biztype-业务类型)                |
-| 手续费状态   | status    | String(3)  | O    | 手续费状态 10: "未收取", 11: "已收取", 12: "已退回" |
-| 第几页       | pageNum   | Integer    | O    | 查询第几页                                          |
-| 每页多少条   | pageSize  | Integer    | O    | 每页多少条，每页最多支持100条                       |
-
-                                                                
-> 返回示例:
-
-```json
-{
-	"pageNum": 1,
-	"pageSize": 10,
-	"total": 2343,
-	"list": [ {
-		"batchNo": "41200514566616790045",
-		"merSingleBatchNo": "10011",
-		"bizType": "C00002",
-		"tradeCurrency": "PHP",
-		"tradeAmt": 60000.0000,
-		"feeCurrency": "USD",
-		"feeTradeAmt": 2.0000,
-		"status": "11",
-		"tradeTime": "2020-05-14 19:57:33",
-		"remark": "实时手续费流水"
-	}]
-}
-```
-
-**4 响应字段**
-
-
-| 名称           | Json标签 | 类型               | 属性 | 取值说明 |
-| -------------- | -------- | ------------------ | ---- | -------- |
-| 当前页码       | pageNum  | Int                | M    | --       |
-| 页显示数       | pageSize | Int                | M    | --       |
-| 总数           | total    | Int                | M    | --       |
-| 手续费信息集合 | list     | `List<FeeFlowRes>` | M    | --       |
-
-**FeeFlowRes 的字段**
-
-| 名称                   | Json标签         | 类型          | 属性 | 取值说明                                            |
-| ---------------------- | ---------------- | ------------- | ---- | --------------------------------------------------- |
-| 订单号                 | batchNo          | string(32)    | M    | 订单号                                              |
-| 商户订单号             | merSingleBatchNo | string(32)    | O    | 商户传入本次交易唯一订单号                          |
-| 业务类型               | bizType          | String(6)     | M    | [业务类型](#_6-1-5-biztype-业务类型)                |
-| 手续费币种             | feeCurrency      | String(3)     | O    | 手续费币种，3位标准货币代码                         |
-| 手续费币种对应交易金额 | feeTradeAmt      | decimal(18,2) | M    | 手续费币种对应交易金额                              |
-| 手续费状态             | status           | string(2)     | M    | 手续费状态 10: "未收取", 11: "已收取", 12: "已退回" |
-| 交易币种               | tradeCurrency    | string(3)     | M    | 交易币种，3位标准货币代码                           |
-| 交易金额               | tradeAmt         | decimal(18,2) | M    | 交易金额                                            |
-| 交易时间               | tradeTime        | Date          | M    | 交易时间                                            |
-| 备注                   | remark           | string(1024)  | M    | 备注                                                |
-
-
-### 5.3.15 一天一价牌价查询接口
-
-**1 功能描述**
-
-|          |                                                    |
-| -------- | -------------------------------------------------- |
-| 交易代码 | TP3011                                             |
-| 功能名称 | 一天一价牌价查询                                   |
-| 功能描述 | 一天一价牌价查询                                   |
-| 调用方式 | 实时接口                                           |
-| 调用流程 | --                                                 |
-| 应用场景 | 用于获取当日币种对参考牌价，方便商户做汇率转换使用 |
-
-<aside class="success">
-牌价结果只适用于参考，并不用于实际交易
-</aside>
-
-**2 请求地址**
-
-
-**Url：** `https://{baseUrl}/api/tp3011`
+**Url：** `https://{baseUrl}/api/tp1014`
 
 **Method：** `POST`
 
@@ -3038,413 +3265,32 @@ respCode为S00000时：
 
 ```json
 {
-    "sellCurrency":"USD",
-    "buyCurrency":"CNY"
+        "tradeCode":"TP2007",
+        "callbackUrl":"https://xxxxx.xxxx.com/callback"
 }
-```                                             
+```                                                                 
+
 **3 请求字段**
 
-
-| 名称     | Json标签     | 类型      | 属性 | 取值说明 |
-| -------- | ------------ | --------- | ---- | -------- |
-| 卖出币种 | sellCurrency | String(3) | M    | 卖出币种 |
-| 买入币种 | buyCurrency  | String(3) | M    | 买入币种 |
+| 名称                     | Json标签              | 类型        | 属性 | 取值说明                                                                     |
+| ------------------------ | --------------------- | ----------- | ---- | ---------------------------------------------------------------------------- |
+| 回调地址              | callbackUrl               | string(64)          | M    | 回调地址                                                                    |
+| 接口类型              | tradeCode               | string(6)          | M    | 回调的接口类型                                       |
 
 > 返回示例:
 
 ```json
 {
-    "sellCurrency":"USD",
-    "buyCurrency":"CNY",
-    "rate":"7.0102"
-}
-
-```
-
-**4 响应字段**
-
-
-
-| 名称     | Json标签     | 类型       | 属性 | 取值说明 |
-| -------- | ------------ | ---------- | ---- | -------- |
-| 卖出币种 | sellCurrency | String(3)  | M    | 卖出币种 |
-| 买入币种 | buyCurrency  | String(3)  | M    | 买入币种 |
-| 汇率     | rate         | String(18) | M    | 汇率报价 |
-
-
-### 5.3.16 VA开户查询接口
-
-**1 功能描述**
-
-|          |                                                    |
-| -------- | -------------------------------------------------- |
-| 交易代码 | TP3012                                             |
-| 功能名称 | VA开户查询接口                                |
-| 功能描述 | VA开户查询接口，提交VA申请后，通过此接口查询账户具体信息                                   |
-| 调用方式 | 实时接口                                           |
-| 调用流程 | --                                                 |
-| 应用场景 | VA开户查询接口 |
-
-**2 请求地址**
-
-
-**Url：** `https://{baseUrl}/api/tp3012`
-
-**Method：** `POST`
-
-> 请求示例:
-
-```json
-{
-    "bizFlow":"7123498239859278274"
-}
-```                                             
-**3 请求字段**
-
-
-| 名称         | Json标签   | 类型   | 属性 | 取值说明                             |
-| ------------ | ---------- | ------ | ---- | ------------------------------------ |
-| 查询起始时间 | startTime  | Long(13)   | O    | Unix13位时间戳，查询开始时间，闭区间 |
-| 查询结束时间 | endTime    | Long(13)   | O    | Unxi13位时间戳，查询结束时间，闭区间 |
-| OTT侧业务订单号       | bizFlow    | String(32)   | O    | VA开户时返回的订单号                               |
-| 商户订单号   | merOrderNo | String(32) | O    | 商户订单号                           |
-
-<aside class="success">
-若startTime与endTime没填，则bizFlow和merOrderNo中必填其一。若bizFlow和merOrderNo都没填，则startTime与endTime为必填，且间隔不能超过24小时。根据startTime和endTime的查询，最多显示100条。
-</aside>       
-
-> 返回示例:
-
-```json
-{
-"list": [
-            {
-                "merOrderNo":"8793478374",
-                "bizFlow":"7123498239859278274",
-                "vaInfos": [
-                    {
-                        "accountName":"OTT-FinalTest",
-                        "accountNo":"7983648348",
-                        "swiftCode":"DHBKHKHH",
-                        "bankName":"China Bank(Hong Kong) Limited",
-                        "bankAddress":"11th Floor, The Center, 99 Queen’s Road Central, Central, Hong Kong",
-                        "area":"Hong Kong, CHINA",
-                        "bankCode":"016",
-                        "branchCode":"478",
-                        "currency":"SGD|NZD|JPY|HKD|GBP|EUR|CAD|AUD|USD|CNY|CHF|SEK|DKK|NOK|EGP",
-                        "status":"OPENING",
-                        "remark":"",
-                        "createTime":"1622453954000",
-                        "updateTime":"1622453954000"
-                    }
-                ]
-            }
-        ] 
+        "code":"SUCC"
 }
 ```
 
 **4 响应字段**
 
 
-
-| 名称     | Json标签     | 类型       | 属性 | 取值说明 |
-| -------- | ------------ | ---------- | ---- | -------- |
-| 商户订单号 | merOrderNo | String(32)  | M    | 商户订单号 |
-| OTT侧业务订单号    | bizFlow    | String(32)   | M    | VA开户时返回的订单号   |
-| VA详细信息     | vaInfos         | List | M    | VA详细信息 |
-
-
-
-**VaInfo 的字段**
-
-| 名称             | Json标签         | 类型          | 属性 | 取值说明                   |
-| ---------------- | ---------------- | ------------- | ---- | -------------------------- |
-| VA账户名称       | accountName       | string(255)    | O    | VA账户名称 |
-| VA账户号             | accountNo         | string(64)     | O    | VA账户号  |
-| SwiftCode             | swiftCode           | string(11) | O    | 银行的SwiftCode                   |
-| 银行名称     | bankName  | string(128)    |   O  | 银行名称               |
-| 银行地址    | bankAddress    | string(255)    | O   | 银行地址         |
-| 国家/地区         | area         | string(64)    | O    | 国家/地区               |
-| 银行Code         | bankCode      | string(12)   | O    | 银行Code             |
-| 分行号       | branchCode        | string(12)    | O   | 分行号       |
-| 支持币种       | currency    | string(255)    | O    | 支持币种，多币种之间按照|分隔                 |
-| VA账户状态     | status           | string(8)     | M    | VA账户状态, ON:启用，OFF：禁用/拒绝 OPENING：开户中               |
-| 备注       | remark             | string(8)     | O    | 当为OFF时，会展示具体禁用/拒绝原因                 |
-| 申请时间     | createTime       | long          | M    | VA开户的申请时间               |
-| 修改时间     | updateTime       | long          | M    | VA开户的修改时间               |
-
-
-
-
-### 5.3.17 收款流水和贸易订单关联查询接口
-
-**1 功能描述**
-
-|          |                                                    |
-| -------- | -------------------------------------------------- |
-| 交易代码 | TP3014                                             |
-| 功能名称 | 收款流水和贸易订单关联查询接口                                |
-| 功能描述 | 提交收款流水和贸易订单关联申请后，通过此接口查询贸易收款是否入账                                   |
-| 调用方式 | 实时接口                                           |
-| 调用流程 | --                                                 |
-| 应用场景 | 提交收款流水和贸易订单关联申请后（TP1013），通过此接口查询贸易收款是否入账 |
-
-**2 请求地址**
-
-
-**Url：** `https://{baseUrl}/api/tp3014`
-
-**Method：** `POST`
-
-> 请求示例:
-
-```json
-{
-       "contactNo":"62291060316483300005",
-       "flowNo":"63291062211570000002"
-}
-```                                             
-**3 请求字段**
-
-
-| 名称         | Json标签   | 类型   | 属性 | 取值说明                             |
-| ------------ | ---------- | ------ | ---- | ------------------------------------ |
-| 查询起始时间 | startTime  | Long(13)   | O    | Unix13位时间戳，查询开始时间，闭区间 |
-| 查询结束时间 | endTime    | Long(13)   | O    | Unxi13位时间戳，查询结束时间，闭区间 |
-| 贸易订单编码 | contactNo  | string(32)          | O    | 贸易订单编码，tp2008返回                                                                     |
-| 收款流水编码 | flowNo   | string(32)          | O    | 收款流水编码，tp3015返回                                 |
-| 业务流水号 | bizFlow  | string(32)  | O    | OTT侧唯一业务订单号，tp1013返回                                                |
-
-<aside class="success">
-若startTime与endTime，间隔不能超过24小时。根据startTime和endTime的查询，最多显示100条。
-</aside>       
-
-
-**4 响应字段**
-
-
-| 名称     | Json标签     | 类型       | 属性 | 取值说明 |
-| -------- | ------------ | ---------- | ---- | -------- |
-| 信息集合 | relateList     | `List<ConfirmRelatetionReq>` | M    | --       |
-
-**ConfirmRelatetionReq 字段：**
-
-| 名称     | Json标签     | 类型       | 属性 | 取值说明 |
-| -------- | ------------ | ---------- | ---- | -------- |
-| 贸易订单编码   | contactNo               | string(32)          | M    | 贸易订单编码                                                                   |
-| 收款流水编码   | flowNo               | string(32)          | M    | 收款流水编码  |
-| 入账币种      | currency        | string | M    | 入账币种，3位标准货币代码  |
-| 入账金额      | amount   | decimal(18,2) | M    | 收款金额                     |
-| 手续费币种    | feeCurty    | String | M    | 手续费币种，3位标准货币代码                    |
-| 手续费金额    | feeAmt           | decimal(18,2) | O    | OTT PAY收取手续费                        |
-| 入账时间      | approveTime        | bigInt(13) | M    | 入账时间戳(毫秒) |
-| 状态   | status    | string(2) | M    | '01-审核中 02-通过 03-驳回' |
-| 结果描述         | message          | string(64)    | M    | 交易结果描述               |
-
-### 5.3.18 贸易收款VA入账查询接口
-
-**1 功能描述**
-
-|          |                                                    |
-| -------- | -------------------------------------------------- |
-| 交易代码 | TP3015                                             |
-| 功能名称 | 贸易收款VA入账查询接口                               |
-| 功能描述 | 贸易收款VA入账查询接口                                   |
-| 调用方式 | 实时接口                                           |
-| 调用流程 | --                                                 |
-| 应用场景 | 可以查询VA账户具体的到账流水 |
-
-**2 请求地址**
-
-
-**Url：** `https://{baseUrl}/api/tp3015`
-
-**Method：** `POST`
-
-> 请求示例:
-
-```json
-{
-       "flowNo":"62291060316483300005"
-}
-```                                             
-
-**3 请求字段**
-
-
-| 名称         | Json标签   | 类型   | 属性 | 取值说明                             |
-| ------------ | ---------- | ------ | ---- | ------------------------------------ |
-| 查询起始时间 | startTime  | Long(13)   | O    | Unix13位时间戳，查询开始时间，闭区间 |
-| 查询结束时间 | endTime    | Long(13)   | O    | Unxi13位时间戳，查询结束时间，闭区间 |
-| VA入账订单号 | flowNo  | string(32)          | O    | VA入账订单号    |
-
-<aside class="success">
-startTime与endTime，间隔不能超过24小时。根据startTime和endTime的查询，最多显示100条。若startTime和endTime未填写，则bizFlow为必填。
-</aside>       
-
-> 返回示例:
-
-```json
-{
-  "list":
-        [
-           {
-               "flowNo":"624348793478374",
-               "receiveAmount": 10000.00,
-               "receiveCurrency": "USD",
-               "vaAccount": "789432134",
-               "senderName": "ERUIEG Limited",
-               "senderAccount": "84956984598234923",
-               "receiveTime":"1624358032"
-           },
-           {
-               "flowNo":"6245498990028374",
-               "receiveAmount": 20000.00,
-               "receiveCurrency": "EUR",
-               "vaAccount": "789432452",
-               "senderName": "ERUIEGdw Limited",
-               "senderAccount": "84950094592334923",
-               "receiveTime":"1622138032"
-           }
-        ]
-}
-```
-**4 响应字段**
-
-
-| 名称       | Json标签 | 类型   | 属性 | 取值说明                                        |
-| ---------- | -------- | ------ | ---- | ----------------------------------------------- |
-| 交易流水号 | flowNo  | string(32) | M    | 贸易收款到账唯一流水号     |
-| 到账金额       | receiveAmount | decimal(18,2) | M    | VA到账金额                    |
-| 到账币种       | receiveCurrency | string(3) | M    | VA到账币种                     |
-| 入账VA账户号       | vaAccount  | string(16) | M    | 入账的VA账户号        |
-| 付款方名称       | senderName | string(64) | O    | 付款方名称                    |
-| 付款方账号       | senderAccount | string(32) | O    | 付款方账号                   |
-| 入账时间       | receiveTime | string(10) | M    | 入账时间，10位unix时间戳                |
-
-
-
-### 5.3.19 贸易订单申请信息查询
-
-**1 功能描述**
-
-|          |                                                    |
-| -------- | -------------------------------------------------- |
-| 交易代码 | TP3013                                             |
-| 功能名称 | 贸易合同结果信息查询                               |
-| 功能描述 | 提供商户查询贸易合同创建状态                       |
-| 调用方式 | 实时接口                                           |
-| 调用流程 | --                                                 |
-| 应用场景 | 商户需要查询订单合同的状态                         |
-
-**2 请求地址**
-
-
-**Url：** `https://{baseUrl}/api/tp3013`
-
-**Method：** `POST`
-
-> 请求示例:
-
-```json
-{
-       "startTime":"168419019000",
-       "endTime":"168419019000",
-       "contractNo":"62291060316483300005",
-       "merOrderNo":"23455560316483300005"
-}
-```                                             
-
-**3 请求字段**
-
-
-| 名称         | Json标签   | 类型   | 属性 | 取值说明                             |
-| ------------ | ---------- | ------ | ---- | ------------------------------------ |
-| 查询起始时间 | startTime  | Long(13)   | O    | Unix13位时间戳，查询开始时间，闭区间 |
-| 查询结束时间 | endTime    | Long(13)   | O    | Unxi13位时间戳，查询结束时间，闭区间 |
-| 贸易合同号   | contractNo | string(32) | O    | [5.1.13 贸易订单申请]返回贸易合同号    |
-| 订单号       | merOrderNo | string(32) | O    | 商户提供的订单号        |
-
-<aside class="success">
-startTime与endTime，间隔不能超过24小时。根据startTime和endTime的查询，最多显示100条。若startTime和endTime未填写，则contractNo为必填。
-</aside>       
-
-> 响应示例:
-
-```json
-{
-   "contractList":[
-                   {
-                       "contractNo":"2120319391838111181",
-                       "status":"SUCC",
-                       "message":"成功",
-                       "merOrderNo":"23134141421414",
-                       "orderNo":"2021062819217",
-                       "currency":"CNY",
-                       "amount":"7010.20",
-                       "tradeType": "00",
-                       "buyerName": "TX",
-                       "buyerArea":"中国",
-                       "goodsList":[
-                         {
-                             "orderName": "apple",
-                             "orderNum":"3"
-                         }
-                       ],
-                       "transcationDate":"2021-06-01",
-                       "transcationCert":["/src/iiii/a.png","/src/iiii/b.pdf","/src/iiii/c.png"],
-                       "logStatus":"0",
-                       "logNo":"983222231788743",
-                       "logCompany":"国际贸易物流公司",
-                       "annexUrl":["/src/iiii/a.png","/src/iiii/b.pdf","/src/iiii/c.png"],
-                        "serviceTrade": {
-                            "serviceCondition": "0",
-                            "proveUrl": [],
-                            "conditionDate": "2021-09-02"
-                        }
-
-                   }
-                 ]
-}
-```
-
-**4 响应字段**
-
-
-| 名称        | Json标签        | 类型                 | 属性 | 取值说明                                                          |
-| ----------- | --------------- | -------------------- | ---- | ----------------------------------------------------------------- |
-| 贸易订单    | contractList    | `List<contractList>` | M    | 贸易订单集合    |
-
-
-**contractList**
-
-| 名称           | Json标签        | 类型              | 属性 | 取值说明                                |
-| -------------- | --------------- | ----------------- | ---- | ------------------------------------|
-| 商户唯一订单号 | merOrderNo      | string(32)        | M    | 商户唯一订单号                             |
-| 订单币种       | currency        | string(3)         | M    | 订单币种                                |
-| 订单总金额     | amount          | Decimal(18,2)     | M    | 订单总金额                               |
-| 贸易类型       | tradeType       | string(2)         | M    | 贸易类型 默认：00-货物贸易                     |
-| 采购方名称     | buyerName       | string(64)        | M    | 采购方名称                               |
-| 采购方所属地区 | buyerArea       | string(64)        | M    | 采购方所属地区                             |
-| 物品信息       | goodsList       | `List<goodsList>` | M    | 物品信息 物品数不超过10个                      |
-| 交易日期       | transcationDate | string(10)        | M    | 交易日期 格式：yyyy-MM-dd                       |
-| 交易凭证       | transcationCert | `Array`           | M    | 多个凭证文件地址数组 (文件大小不超过20M)                  |
-| 物流状态       | logStatus       | string(1)         | O    | 0-未发货 1-已发货                         |
-| 物流单号       | logNo           | string(64)        | O    | 物流单号                                |
-| 物流公司名称   | logCompany      | string(64)        | O    | 物流公司名称 |
-| 物流附件       | annexUrl        | `Array`           | O    | 物流附件 (文件大小不超过20M) |
-| 服务贸易信息   | serviceTrade    | `Object`          | O    | 服务贸易信息 |
-| 贸易订单号     | contractNo      | string(32)        | M    | 贸易订单号（唯一）                           |
-| 贸易订单状态   | status          | string(8)         | M    | 贸易订单状态 ACCEPT-处理中 SUCC-成功 FAIL-失败|
-| 查询结果描述   | message         | string(128)       | M    | 查询结果描述|
-
-**serviceTrade**
-
-| 名称           | Json标签        | 类型            | 属性 | 取值说明                                                          |
-| -------------- | --------------- | --------------- | ---- | ----------------------------------------------------------------- |
-| 服务贸易状态   | serviceCondition| string(1)       | O    | 服务贸易完成状态 0-未完成 1-已完成                                          |
-| 证明文件       | proveUrl        | `Array`         | O    | 证明文件路径 serviceCondition 为0时必填                                       |
-| 预计完成时间   | conditionDate   | string(10)      | O    | serviceCondition 为1时必填 格式"yyyy-MM-dd"                                     |
+| 名称       | Json标签 | 类型        | 属性 | 取值说明                                                          |
+| ---------- | -------- | ----------- | ---- | ----------------------------------------------------------------- |
+| 结果码     | code     | string(6)   | M    | SUCC代表成功 |
 
 
 
@@ -3632,5 +3478,5 @@ startTime与endTime，间隔不能超过24小时。根据startTime和endTime的�
 |--------|---------------------------------------|
 | 0      | 法人代表                                  |
 | 1      | 公司董事                                  |
-| 2      | 持股25%以上的股东                            |
-| 3      | 以上都不是                                 |
+| 2      | 持股25%以上的股东                          |
+| 3      | 以上都不是                                |
