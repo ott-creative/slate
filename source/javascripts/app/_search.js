@@ -1,6 +1,11 @@
+//= require ../lib/segmentit.js
 //= require ../lib/_lunr
+//= require ../lib/lunr.stemmer.support.js
+//= require ../lib/lunr.zh.js
+//= require ../lib/lunr.multi.js
 //= require ../lib/_jquery
 //= require ../lib/_jquery.highlight
+
 ; (function () {
   'use strict';
 
@@ -13,10 +18,13 @@
   function populate() {
     index = lunr(function () {
 
+      //this.use(lunr.multiLanguage('en', 'zh'));
+      this.use(lunr.zh);
+
       this.ref('id');
       this.field('title', { boost: 10 });
       this.field('body');
-      this.pipeline.add(lunr.trimmer, lunr.stopWordFilter);
+      //this.pipeline.add(lunr.trimmer, lunr.stopWordFilter);
       var lunrConfig = this;
 
       $('h1, h2, h3, h4').each(function () {
@@ -69,7 +77,7 @@
     // ESC clears the field
     if (event.keyCode === 27) searchInput.value = '';
 
-    if (searchInput.value) {
+    if (searchInput.value && searchInput.value.length > 1) {
       var results = index.search(searchInput.value).filter(function (r) {
         return r.score > 0.0001;
       });
