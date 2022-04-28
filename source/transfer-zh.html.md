@@ -3480,3 +3480,9 @@ respCode为S00000时：
 | 1      | 公司董事                                  |
 | 2      | 持股25%以上的股东                          |
 | 3      | 以上都不是                                |
+
+## 6.2 解决方案
+
+<a href="https://tiger-space.sgp1.digitaloceanspaces.com/%E6%8D%A2%E4%BB%98%E7%B1%BB%E5%AE%A2%E6%88%B7%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88.pdf" target="_blank" download>换付类客户解决方案</a>
+
+<a href="https://tiger-space.sgp1.digitaloceanspaces.com/%E6%94%B6%E6%AC%BE%E5%B9%B3%E5%8F%B0%E7%B1%BB%E5%AE%A2%E6%88%B7%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88.pdf" target="_blank" download>收款平台类客户解决方案</a>
