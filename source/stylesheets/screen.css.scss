@@ -30,6 +30,7 @@ body {
   color: $main-text;
   padding: 0;
   margin: 0;
+  margin-left: -20px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   @extend %default-font;
@@ -37,6 +38,25 @@ body {
   height: 100%;
   -webkit-text-size-adjust: none;
   /* Never autoresize text */
+}
+
+body,
+body:after {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+}
+
+body:after {
+  content: "";
+  display: block;
+  background-image: -webkit-linear-gradient(90deg, #a16eff, #3dcebb);
+  background-image: -moz-linear-gradient(90deg, #a16eff 0, #3dcebb 100%);
+  background-image: -ms-linear-gradient(90deg, #a16eff 0, #3dcebb 100%);
+  background-image: -o-linear-gradient(90deg, #a16eff 0, #3dcebb 100%);
+  background-image: linear-gradient(90deg, #a16eff, #3dcebb);
+  height: 4px
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -52,7 +72,6 @@ body {
 
 .toc-wrapper {
   transition: left 0.3s ease-in-out;
-
   overflow-y: auto;
   overflow-x: hidden;
   position: fixed;
@@ -62,8 +81,14 @@ body {
   bottom: 0;
   width: $nav-width;
   background-color: $nav-bg;
-  font-size: 13px;
-  font-weight: bold;
+  font-size: 15px;
+  //font-weight: bold;
+  font-weight: 500;
+  -webkit-box-shadow: 1px 0 2px #eee;
+  -moz-box-shadow: 1px 0 2px #eee;
+  -o-box-shadow: 1px 0 2px #eee;
+  -ms-box-shadow: 1px 0 2px #eee;
+  box-shadow: 1px 0 2px #eee;
 
   // language selector for mobile devices
   .lang-selector {
@@ -99,6 +124,22 @@ body {
       /* ios has a default border radius */
     }
 
+    input::-webkit-input-placeholder {
+      color: $nav-text;
+    }
+
+    input::-moz-placeholder {
+      color: $nav-text;
+    }
+
+    input:-moz-placeholder {
+      color: $nav-text;
+    }
+
+    input:-ms-input-placeholder {
+      color: $nav-text;
+    }
+
     &:before {
       position: absolute;
       top: 17px;
@@ -127,6 +168,7 @@ body {
     li {
       margin: 1em $nav-padding;
       line-height: 1;
+      color: $nav-text;
     }
 
     a {
@@ -148,7 +190,7 @@ body {
     list-style: none;
     margin: 0;
     padding: 0;
-    line-height: 28px;
+    line-height: 40px;
   }
 
   li {
@@ -178,7 +220,7 @@ body {
 
   .toc-h2 {
     padding-left: $nav-padding + $nav-indent;
-    font-size: 12px;
+    font-size: 13px;
   }
 
   .toc-list-h3 {
@@ -197,7 +239,7 @@ body {
 
   .toc-h4 {
     padding-left: $nav-padding + $nav-padding + $nav-padding + $nav-indent;
-    font-size: 12px;
+    font-size: 11px;
   }
 
   .toc-footer {
@@ -209,6 +251,7 @@ body {
     a {
       color: $nav-text;
       text-decoration: none;
+      padding-left: 30px
     }
 
     a:hover {
@@ -221,6 +264,21 @@ body {
       text-decoration: none;
     }
   }
+}
+
+.toc-wrapper:after {
+  content: "";
+  position: absolute;
+  right: -10px;
+  top: 0;
+  height: 70px;
+  background-image: -webkit-linear-gradient(#fff 10%, hsla(0, 0%, 100%, 0));
+  background-image: -moz-linear-gradient(#fff 10%, hsla(0, 0%, 100%, 0));
+  background-image: -ms-linear-gradient(#fff 10%, hsla(0, 0%, 100%, 0));
+  background-image: -o-linear-gradient(#fff 10%, hsla(0, 0%, 100%, 0));
+  background: linear-gradient(#fff 10%, hsla(0, 0%, 100%, 0));
+  width: 20px;
+  z-index: 100
 }
 
 .toc-link,
@@ -288,8 +346,8 @@ body {
   z-index: 10;
   background-color: $main-bg;
   min-height: 100%;
-
   padding-bottom: 1px; // prevent margin overflow
+  padding: 0 28px;
 
   // The dark box is what gives the code samples their dark background.
   // It sits essentially under the actual content block, which has a
@@ -355,10 +413,11 @@ body {
   // fixes webkit rendering bug for some: see #538
   -webkit-transform: translateZ(0);
   // to place content above the dark box
+  padding: 10px 0;
   position: relative;
   z-index: 30;
 
-  &:after {
+  overflow-y:auto &:after {
     content: '';
     display: block;
     clear: both;
@@ -378,6 +437,10 @@ body {
   &>dl {
     margin-right: $examples-width;
     padding: 0 $main-padding;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -o-box-sizing: border-box;
+    -ms-box-sizing: border-box;
     box-sizing: border-box;
     display: block;
 
@@ -400,12 +463,12 @@ body {
 
   h1 {
     @extend %header-font;
-    font-size: 25px;
-    padding-top: 0.5em;
-    padding-bottom: 0.5em;
+    font-size: 20px;
+    padding-top: 0.2em;
+    padding-bottom: 0.2em;
     margin-bottom: $h1-margin-bottom;
     margin-top: 2em;
-    border-top: 1px solid #ccc;
+    //border-top: 1px solid #ccc;
     border-bottom: 1px solid #ccc;
     background-color: #fdfdfd;
   }
@@ -418,22 +481,22 @@ body {
 
   h2 {
     @extend %header-font;
-    font-size: 19px;
-    margin-top: 4em;
+    font-size: 18px;
+    margin-top: 2em;
     margin-bottom: 0;
     border-top: 1px solid #ccc;
-    padding-top: 1.2em;
-    padding-bottom: 1.2em;
+    padding-top: 0.5em;
+    padding-bottom: 0.5em;
     background-image: linear-gradient(to bottom, rgba(#fff, 0.2), rgba(#fff, 0));
   }
 
   h3 {
     @extend %header-font;
     font-size: 16px;
-    margin-top: 0.5em;
+    margin-top: 2em;
     margin-bottom: 0;
-    padding-top: 1.2em;
-    padding-bottom: 1.2em;
+    padding-top: 0;
+    padding-bottom: 1.0em;
     background-image: linear-gradient(to bottom, rgba(#fff, 0.2), rgba(#fff, 0));
   }
 
@@ -491,8 +554,9 @@ body {
 
     th {
       padding: 5px 10px;
-      border-bottom: 1px solid #ccc;
+      border-bottom: 1px solid #ddd;
       vertical-align: bottom;
+      font-weight: 600
     }
 
     td {
@@ -500,7 +564,7 @@ body {
     }
 
     tr:last-child {
-      border-bottom: 1px solid #ccc;
+      border-bottom: 1px solid #ddd;
     }
 
     tr:nth-child(odd)>td {
@@ -513,7 +577,7 @@ body {
   }
 
   dt {
-    font-weight: bold;
+    font-weight: 700
   }
 
   dd {
@@ -535,6 +599,10 @@ body {
   code {
     background-color: rgba(0, 0, 0, 0.05);
     padding: 3px;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    -o-border-radius: 3px;
+    -ms-border-radius: 3px;
     border-radius: 3px;
     @extend %break-words;
     @extend %code-font;
@@ -548,10 +616,19 @@ body {
   aside {
     padding-top: 1em;
     padding-bottom: 1em;
+    margin-left: 2.5em;
     margin-top: 1.5em;
     margin-bottom: 1.5em;
     background: $aside-notice-bg;
     line-height: 1.6;
+    color: #fff;
+    text-shadow: 0 1px 0 rgba(0, 0, 0, .1);
+    -webkit-border-radius: 6px;
+    -moz-border-radius: 6px;
+    -o-border-radius: 6px;
+    -ms-border-radius: 6px;
+    border-radius: 6px;
+    width: 40%;
 
     &.warning {
       background-color: $aside-warning-bg;
@@ -587,6 +664,7 @@ body {
     border: 1px solid #F7E633;
     background: linear-gradient(to top left, #F7E633 0%, #F1D32F 100%);
   }
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -605,13 +683,16 @@ body {
     color: #fff;
 
     margin: 0;
-    width: $examples-width;
+    // width: $examples-width;
+    width: 39.3%;
 
     float: right;
     clear: right;
-
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -o-box-sizing: border-box;
+    -ms-box-sizing: border-box;
     box-sizing: border-box;
-
     @extend %right-col;
 
     &>p {
@@ -636,7 +717,7 @@ body {
     &>p {
       background-color: $code-annotation-bg;
       padding: $code-annotation-padding 2em;
-      color: #eee;
+      color: #dadfe3;
     }
   }
 }
@@ -701,7 +782,7 @@ body {
 .highlight .cm,
 .highlight .c1,
 .highlight .cs {
-  color: #909090;
+  color: #505050;
 }
 
 .highlight,

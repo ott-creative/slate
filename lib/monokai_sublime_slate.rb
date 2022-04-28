@@ -23,10 +23,12 @@ module Rouge
         palette :light_violet   => '#ae81ff'
         palette :soft_cyan      => '#66d9ef'
         palette :soft_yellow    => '#e6db74'
+        palette :soft_green     => '#90a959'
         palette :very_dark      => '#1e0010'
         palette :whitish        => '#f8f8f2'
         palette :orange         => '#f6aa11'
         palette :white          => '#ffffff'
+        palette :yellow         => '#f4bf75'
 
         style Generic::Heading,                 :fg => :grey
         style Literal::String::Regex,           :fg => :orange
@@ -42,7 +44,7 @@ module Rouge
               Comment,                          :fg => :dimgrey
         style Error,
               Generic::Error,
-              Generic::Traceback,               :fg => :carmine
+              Generic::Traceback,               :fg => :light_grey
         style Generic::Deleted,
               Generic::Inserted,
               Generic::Emph,                    :fg => :dark
@@ -67,7 +69,7 @@ module Rouge
               Literal::String::Interpol,
               Literal::String::Other,
               Literal::String::Single,
-              Literal::String,                  :fg => :soft_yellow
+              Literal::String,                  :fg => :soft_green
         style Name::Attribute,
               Name::Class,
               Name::Decorator,
@@ -83,13 +85,13 @@ module Rouge
               Text::Whitespace,
               Text,
               Name,                             :fg => :white
-        style Name::Label,                      :fg => :bright_pink
+        style Name::Label,                      :fg => :yellow
         style Operator::Word,
               Name::Tag,
               Keyword,
               Keyword::Namespace,
               Keyword::Pseudo,
-              Operator,                         :fg => :bright_pink
+              Operator,                         :fg => :yellow
       end
     end
   end
