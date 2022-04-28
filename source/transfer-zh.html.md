@@ -1110,37 +1110,37 @@ startTime与endTime，间隔不能超过24小时。根据startTime和endTime的�
 ```json
 {
    "contractList":[
-                   {
-                       "contractNo":"2120319391838111181",
-                       "status":"SUCC",
-                       "message":"成功",
-                       "merOrderNo":"23134141421414",
-                       "orderNo":"2021062819217",
-                       "currency":"CNY",
-                       "amount":"7010.20",
-                       "tradeType": "00",
-                       "buyerName": "TX",
-                       "buyerArea":"中国",
-                       "goodsList":[
-                         {
-                             "orderName": "apple",
-                             "orderNum":"3"
-                         }
-                       ],
-                       "transcationDate":"2021-06-01",
-                       "transcationCert":["/src/iiii/a.png","/src/iiii/b.pdf","/src/iiii/c.png"],
-                       "logStatus":"0",
-                       "logNo":"983222231788743",
-                       "logCompany":"国际贸易物流公司",
-                       "annexUrl":["/src/iiii/a.png","/src/iiii/b.pdf","/src/iiii/c.png"],
-                        "serviceTrade": {
-                            "serviceCondition": "0",
-                            "proveUrl": [],
-                            "conditionDate": "2021-09-02"
-                        }
+        {
+            "contractNo":"2120319391838111181",
+            "status":"SUCC",
+            "message":"成功",
+            "merOrderNo":"23134141421414",
+            "orderNo":"2021062819217",
+            "currency":"CNY",
+            "amount":"7010.20",
+            "tradeType": "00",
+            "buyerName": "TX",
+            "buyerArea":"中国",
+            "goodsList":[
+                {
+                    "orderName": "apple",
+                    "orderNum":"3"
+                }
+            ],
+            "transcationDate":"2021-06-01",
+            "transcationCert":["/src/iiii/a.png","/src/iiii/b.pdf","/src/iiii/c.png"],
+            "logStatus":"0",
+            "logNo":"983222231788743",
+            "logCompany":"国际贸易物流公司",
+            "annexUrl":["/src/iiii/a.png","/src/iiii/b.pdf","/src/iiii/c.png"],
+            "serviceTrade": {
+                "serviceCondition": "0",
+                "proveUrl": [],
+                "conditionDate": "2021-09-02"
+            }
 
-                   }
-                 ]
+        }
+    ]
 }
 ```
 
