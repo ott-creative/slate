@@ -1580,7 +1580,7 @@ startTime与endTime，间隔不能超过24小时。根据startTime和endTime的�
 | 功能描述 | Fx的交易结果异步通知                                                                                                              |
 | 调用方式 | 通知接口                                                                                                                          |
 | 调用流程 | --                                                                                                                                |
-| 应用场景 | [5.4.2 Fx交易](#5-4-2-fx)发起成功且交易处理完毕后，将根据[5.4.2 Fx交易](#5-4-2-fx)参数内的回调Url进行回调通知最终结果。 |
+| 应用场景 | [5.4.2 Fx交易](#5-4-2-fx)发起成功且交易处理完毕后，<br/>将根据[5.4.2 Fx交易](#5-4-2-fx)参数内的回调Url进行回调通知最终结果。 |
 
 <aside class="success">
  本通知将按照间隔时间渐长的方式持续通知24小时.<br>商户应当以http 200返回，若通知持续时间结束仍未正常返回，则不再通知。<br>商户应当自行通过 [5.4.3 换汇历史交易查询](#5-4-3)查询接口查询交易结果。
@@ -1616,7 +1616,7 @@ startTime与endTime，间隔不能超过24小时。根据startTime和endTime的�
 | 汇率       | rate         | String(18) | M        | 汇率报价     |
 | 卖出金额   | sellAmount   | String(20) | M        | 卖出金额     |
 | 买入金额   | buyAmount    | String(20) | M        | 买入金额     |
-| 报价ID     | quoteId      | Long       | M	报价ID |
+| 报价ID     | quoteId      | Long       | M	   | 报价ID       |
 | 结果码     | code         | String     | M        | Fx交易结果码 |
 | 结果描述   | message      | String     | M        | 交易结果描述 |
 | 业务流水号 | bizFlow      | String(32) | M        | 业务流水号   |
